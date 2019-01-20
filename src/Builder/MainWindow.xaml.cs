@@ -1,28 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Win32;
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Builder
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        private BuilderViewModel m_viewModel;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            m_viewModel = new BuilderViewModel();
+            DataContext = m_viewModel;
+        }
+
+        private void OnClickBrowseSolution(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "Visual Studio solution|*.sln";
+
+            if (dialog.ShowDialog() == true)
+            {
+                // TODO: requires INotifyPropertyChanged implementation
+                m_viewModel.Solution = new Model.Solution(dialog.FileName);
+            }
         }
     }
 }

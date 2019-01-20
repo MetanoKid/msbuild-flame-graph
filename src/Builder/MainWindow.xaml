@@ -6,7 +6,24 @@
         xmlns:local="clr-namespace:Builder"
         mc:Ignorable="d"
         Title="Builder" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+    <DockPanel>
+        <Border BorderThickness="0"
+                Padding="5"
+                Height="Auto"
+                VerticalAlignment="Top">
+            <DockPanel>
+                <Button x:Name="Browse"
+                        DockPanel.Dock="Right"
+                        Content="Browse"
+                        VerticalAlignment="Center"
+                        Padding="10,2,10,2"
+                        Click="OnClickBrowseSolution" />
+                <TextBox x:Name="SolutionFilePath"
+                         TextWrapping="Wrap"
+                         Margin="0,0,10,0"
+                         Padding="2"
+                         Text="{Binding Solution.Path}" />
+            </DockPanel>
+        </Border>
+    </DockPanel>
 </Window>

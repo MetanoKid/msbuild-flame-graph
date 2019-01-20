@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Model
+﻿namespace Model
 {
-    public class Solution
+    public class Solution : DiskFile
     {
+        public Solution(string path)
+        {
+            Path = path;
+        }
     }
 }
