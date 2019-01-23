@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Builder
 {
@@ -16,6 +18,12 @@ namespace Builder
             DataContext = m_viewModel;
         }
 
+        private void LoadSolution(string path)
+        {
+            m_viewModel.Solution = new Model.Solution(path);
+            m_viewModel.SolutionCompiler = new Model.SolutionCompiler(m_viewModel.Solution);
+        }
+
         private void OnClickBrowseSolution(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
@@ -23,9 +31,13 @@ namespace Builder
 
             if (dialog.ShowDialog() == true)
             {
-                // TODO: requires INotifyPropertyChanged implementation
-                m_viewModel.Solution = new Model.Solution(dialog.FileName);
+                LoadSolution(dialog.FileName);
             }
+        }
+
+        private void OnClickBuildSolution(object sender, RoutedEventArgs e)
+        {
+            Task.Run((Action) m_viewModel.SolutionCompiler.Start);
         }
     }
 }

@@ -4,26 +4,50 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Builder"
+        xmlns:model="clr-namespace:Model;assembly=Model"
         mc:Ignorable="d"
         Title="Builder" Height="350" Width="525">
     <DockPanel>
         <Border BorderThickness="0"
                 Padding="5"
                 Height="Auto"
-                VerticalAlignment="Top">
+                DockPanel.Dock="Top">
             <DockPanel>
                 <Button x:Name="Browse"
                         DockPanel.Dock="Right"
                         Content="Browse"
                         VerticalAlignment="Center"
                         Padding="10,2,10,2"
-                        Click="OnClickBrowseSolution" />
+                        Click="OnClickBrowseSolution"/>
                 <TextBox x:Name="SolutionFilePath"
                          TextWrapping="Wrap"
                          Margin="0,0,10,0"
                          Padding="2"
-                         Text="{Binding Solution.Path}" />
+                         Text="{Binding Solution.Path, Mode=OneWay}" />
             </DockPanel>
+        </Border>
+        <Button DockPanel.Dock="Bottom"
+                Content="Build solution"
+                HorizontalAlignment="Center"
+                Padding="10,3"
+                Margin="0,5"
+                Click="OnClickBuildSolution"
+                IsEnabled="{Binding SolutionCompiler.IsReady, FallbackValue=False}"/>
+        <Border>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SolutionCompiler.LastCompilationResult}"
+                                     Value="{x:Static model:LastCompilationResult.Success}">
+                            <Setter Property="Background" Value="Green" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SolutionCompiler.LastCompilationResult}"
+                                     Value="{x:Static model:LastCompilationResult.Failure}">
+                            <Setter Property="Background" Value="Red" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
         </Border>
     </DockPanel>
 </Window>
