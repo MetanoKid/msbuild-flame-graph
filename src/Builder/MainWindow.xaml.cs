@@ -21,7 +21,15 @@ namespace Builder
         private void LoadSolution(string path)
         {
             m_viewModel.Solution = new Model.Solution(path);
-            m_viewModel.SolutionCompiler = new Model.SolutionCompiler(m_viewModel.Solution);
+            m_viewModel.SolutionCompiler = new Model.SolutionCompiler(m_viewModel.Solution, OnBuildMessage);
+            m_viewModel.BuildMessages = new System.Collections.ObjectModel.ObservableCollection<Model.BuildMessage>();
+        }
+
+        private void OnBuildMessage(Model.BuildMessage message)
+        {
+            App.Current.Dispatcher.InvokeAsync(() => {
+                m_viewModel.BuildMessages.Add(message);
+            });
         }
 
         private void OnClickBrowseSolution(object sender, RoutedEventArgs e)

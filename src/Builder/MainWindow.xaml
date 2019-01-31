@@ -33,21 +33,28 @@
                 Margin="0,5"
                 Click="OnClickBuildSolution"
                 IsEnabled="{Binding SolutionCompiler.IsReady, FallbackValue=False}"/>
-        <Border>
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding SolutionCompiler.LastCompilationResult}"
-                                     Value="{x:Static model:LastCompilationResult.Success}">
-                            <Setter Property="Background" Value="Green" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding SolutionCompiler.LastCompilationResult}"
-                                     Value="{x:Static model:LastCompilationResult.Failure}">
-                            <Setter Property="Background" Value="Red" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
-        </Border>
+        <ListView ItemsSource="{Binding BuildMessages}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Type"
+                                    Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Type}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Message"
+                                    Width="500">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Message}"
+                                           TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
     </DockPanel>
 </Window>
