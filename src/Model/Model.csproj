@@ -45,6 +45,9 @@
   <ItemGroup>
     <Compile Include="BuildLoggers\AllMessagesLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
+    <Compile Include="Compilation\Compilation.cs" />
+    <Compile Include="Compilation\CompilationResult.cs" />
+    <Compile Include="Compilation\CompilationStatus.cs" />
     <Compile Include="DiskFile\DiskFile.cs" />
     <Compile Include="PropertyChangeNotifier\PropertyChangeNotifier.cs" />
     <Compile Include="SolutionCompiler\SolutionCompiler.cs" />

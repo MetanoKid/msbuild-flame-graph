@@ -32,8 +32,9 @@
                 Padding="10,3"
                 Margin="0,5"
                 Click="OnClickBuildSolution"
-                IsEnabled="{Binding SolutionCompiler.IsReady, FallbackValue=False}"/>
-        <ListView ItemsSource="{Binding BuildMessages}">
+                IsEnabled="{Binding SolutionCompiler.CanCompile, FallbackValue=False}"/>
+        <ListView Name="BuildMessageList"
+                  ItemsSource="{Binding BuildMessages}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Type"

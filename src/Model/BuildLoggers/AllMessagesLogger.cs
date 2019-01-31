@@ -15,9 +15,7 @@ namespace Model
 
         public override void Initialize(IEventSource eventSource)
         {
-            //eventSource.AnyEventRaised += OnAnyMessage;
-            eventSource.ProjectStarted += OnAnyMessage;
-            eventSource.ProjectFinished += OnAnyMessage;
+            eventSource.AnyEventRaised += OnAnyMessage;
         }
 
         private void OnAnyMessage(object sender, BuildEventArgs e)

@@ -1,8 +1,10 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Builder
 {
@@ -21,8 +23,9 @@ namespace Builder
         private void LoadSolution(string path)
         {
             m_viewModel.Solution = new Model.Solution(path);
-            m_viewModel.SolutionCompiler = new Model.SolutionCompiler(m_viewModel.Solution, OnBuildMessage);
+            m_viewModel.SolutionCompiler = new Model.SolutionCompiler(OnBuildMessage);
             m_viewModel.BuildMessages = new System.Collections.ObjectModel.ObservableCollection<Model.BuildMessage>();
+            m_viewModel.BuildMessages.CollectionChanged += ScrollBuildMessageToBottom;
         }
 
         private void OnBuildMessage(Model.BuildMessage message)
@@ -30,6 +33,16 @@ namespace Builder
             App.Current.Dispatcher.InvokeAsync(() => {
                 m_viewModel.BuildMessages.Add(message);
             });
+        }
+
+        private void ScrollBuildMessageToBottom(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (VisualTreeHelper.GetChildrenCount(BuildMessageList) > 0)
+            {
+                Decorator border = VisualTreeHelper.GetChild(BuildMessageList, 0) as Decorator;
+                ScrollViewer scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
+                scrollViewer.ScrollToBottom();
+            }
         }
 
         private void OnClickBrowseSolution(object sender, RoutedEventArgs e)
@@ -45,7 +58,8 @@ namespace Builder
 
         private void OnClickBuildSolution(object sender, RoutedEventArgs e)
         {
-            Task.Run((Action) m_viewModel.SolutionCompiler.Start);
+            m_viewModel.BuildMessages.Clear();
+            Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution, "Debug", "x64", "Build"));
         }
     }
 }
