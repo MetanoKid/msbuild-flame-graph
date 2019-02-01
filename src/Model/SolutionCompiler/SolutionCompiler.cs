@@ -25,6 +25,7 @@ namespace Model
             }
         }
 
+        // TODO: not working properly, this property isn't re-evaluated and button is always enabled after a solution is loaded
         public bool CanCompile
         {
             get
