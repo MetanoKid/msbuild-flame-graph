@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Diagnostics;
 
 namespace Builder
 {
@@ -59,7 +60,7 @@ namespace Builder
         private void OnClickBuildSolution(object sender, RoutedEventArgs e)
         {
             m_viewModel.BuildMessages.Clear();
-            Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution, "Debug", "x64", "Build"));
+            Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution, "Debug", "x64", "Rebuild"));
         }
 
         private void OnClickSaveBuildTimeline(object sender, RoutedEventArgs e)
@@ -68,8 +69,9 @@ namespace Builder
 
             Model.BuildTimelineBuilder builder = new Model.BuildTimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
             Model.BuildTimeline timeline = builder.Process();
+            Debug.Assert(timeline.IsCompleted());
 
-            Console.WriteLine($"Build elapsed time: {timeline.EndTimestamp - timeline.StartTimestamp}");
+            Model.ChromeTracingSerializer.Serialize(timeline);
         }
     }
 }
