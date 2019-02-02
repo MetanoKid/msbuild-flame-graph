@@ -61,5 +61,15 @@ namespace Builder
             m_viewModel.BuildMessages.Clear();
             Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution, "Debug", "x64", "Build"));
         }
+
+        private void OnClickSaveBuildTimeline(object sender, RoutedEventArgs e)
+        {
+            // ensure compilation is completed before allowing clicking on this button!
+
+            Model.BuildTimelineBuilder builder = new Model.BuildTimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
+            Model.BuildTimeline timeline = builder.Process();
+
+            Console.WriteLine($"Build elapsed time: {timeline.EndTimestamp - timeline.StartTimestamp}");
+        }
     }
 }

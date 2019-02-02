@@ -44,7 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildLoggers\AllMessagesLogger.cs" />
+    <Compile Include="BuildLoggers\BuildEventsRecordLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
+    <Compile Include="BuildTimeline\BuildTimeline.cs" />
+    <Compile Include="BuildTimeline\BuildTimelineBuilder.cs" />
     <Compile Include="Compilation\Compilation.cs" />
     <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\CompilationStatus.cs" />

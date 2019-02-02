@@ -1,13 +1,9 @@
-﻿namespace Model
+﻿using Microsoft.Build.Framework;
+
+namespace Model
 {
     public class BuildMessage
     {
-        public int ThreadId
-        {
-            get;
-            set;
-        }
-
         public string Type
         {
             get;
@@ -15,6 +11,12 @@
         }
 
         public string Message
+        {
+            get;
+            set;
+        }
+
+        public BuildEventContext Context
         {
             get;
             set;

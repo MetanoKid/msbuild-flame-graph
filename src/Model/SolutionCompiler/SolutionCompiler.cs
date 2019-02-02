@@ -25,15 +25,6 @@ namespace Model
             }
         }
 
-        // TODO: not working properly, this property isn't re-evaluated and button is always enabled after a solution is loaded
-        public bool CanCompile
-        {
-            get
-            {
-                return CurrentCompilation == null || CurrentCompilation.Status != CompilationStatus.InProgress;
-            }
-        }
-
         private Compilation m_currentCompilation;
         private Logger m_logger;
 

@@ -55,10 +55,13 @@ namespace Model
         private CompilationStatus m_status;
         private CompilationResult m_result;
 
+        private BuildEventsRecordLogger m_buildEventsRecordLogger;
+
         public Compilation(Solution solution, Logger logger)
         {
             Status = CompilationStatus.NotStarted;
             Result = CompilationResult.None;
+            m_buildEventsRecordLogger = new BuildEventsRecordLogger();
 
             m_solution = solution;
             m_logger = logger;
@@ -72,12 +75,13 @@ namespace Model
 
             ProjectCollection projectCollection = new ProjectCollection();
             BuildParameters parameters = new BuildParameters(projectCollection);
-            parameters.MaxNodeCount = Environment.ProcessorCount;
-            parameters.Culture = new System.Globalization.CultureInfo("en-US");
+            parameters.MaxNodeCount = 1;//Environment.ProcessorCount;
+            parameters.UICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 
             parameters.Loggers = new[]
             {
-                m_logger
+                m_logger,
+                m_buildEventsRecordLogger
             };
 
             Dictionary<string, string> globalProperties = new Dictionary<string, string>();
@@ -100,6 +104,16 @@ namespace Model
             }
 
             Status = CompilationStatus.Completed;
+        }
+
+        public List<BuildEventArgs> GetBuildEvents()
+        {
+            if(Status == CompilationStatus.Completed)
+            {
+                return m_buildEventsRecordLogger.BuildEvents;
+            }
+
+            return null;
         }
     }
 }

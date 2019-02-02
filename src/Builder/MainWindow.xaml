@@ -31,8 +31,13 @@
                 HorizontalAlignment="Center"
                 Padding="10,3"
                 Margin="0,5"
-                Click="OnClickBuildSolution"
-                IsEnabled="{Binding SolutionCompiler.CanCompile, FallbackValue=False}"/>
+                Click="OnClickBuildSolution"/>
+        <Button DockPanel.Dock="Bottom"
+                Content="Save build timeline"
+                HorizontalAlignment="Center"
+                Padding="10,3"
+                Margin="0,5"
+                Click="OnClickSaveBuildTimeline"/>
         <ListView Name="BuildMessageList"
                   ItemsSource="{Binding BuildMessages}">
             <ListView.ItemContainerStyle>
@@ -63,16 +68,48 @@
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Thread"
+                    <GridViewColumn Header="Node"
                                     Width="Auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding ThreadId}" />
+                                <TextBlock Text="{Binding Context.NodeId}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="ProjectContextId"
+                                    Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Context.ProjectContextId}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="ProjectInstanceId"
+                                    Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Context.ProjectInstanceId}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="TargetId"
+                                    Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Context.TargetId}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="TaskId"
+                                    Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Context.TaskId}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Type"
-                                    Width="150">
+                                    Width="Auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Type}" />
@@ -80,7 +117,7 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Message"
-                                    Width="300">
+                                    Width="350">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Message}"
