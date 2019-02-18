@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.Diagnostics;
 
 namespace Model
 {
@@ -66,28 +67,26 @@ namespace Model
 
         private static string ExtractTracingNameFrom(BuildEventArgs entryEvent)
         {
-            string name = "???";
+            string name = null;
 
             if (entryEvent is BuildStartedEventArgs)
             {
-                BuildStartedEventArgs buildStarted = entryEvent as BuildStartedEventArgs;
                 name = "Build";
             }
             else if (entryEvent is ProjectStartedEventArgs)
             {
-                ProjectStartedEventArgs projectStarted = entryEvent as ProjectStartedEventArgs;
-                name = projectStarted.ProjectFile;
+                name = (entryEvent as ProjectStartedEventArgs).ProjectFile;
             }
             else if (entryEvent is TargetStartedEventArgs)
             {
-                TargetStartedEventArgs targetStarted = entryEvent as TargetStartedEventArgs;
-                name = targetStarted.TargetName;
+                name = (entryEvent as TargetStartedEventArgs).TargetName;
             }
             else if (entryEvent is TaskStartedEventArgs)
             {
-                TaskStartedEventArgs taskStarted = entryEvent as TaskStartedEventArgs;
-                name = taskStarted.TaskName;
+                name = (entryEvent as TaskStartedEventArgs).TaskName;
             }
+
+            Debug.Assert(name != null);
 
             return name;
         }
