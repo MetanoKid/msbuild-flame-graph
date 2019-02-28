@@ -23,7 +23,7 @@ namespace Model
                 return null;
             }
 
-            BuildTimeline timeline = new BuildTimeline();
+            BuildTimeline timeline = new BuildTimeline(m_compilation.NodeCount);
             List<BuildEventArgs> rawBuildEvents = m_compilation.GetBuildEvents();
 
             // filter out BuildMessageEventArgs, we don't want the extra data
@@ -64,6 +64,8 @@ namespace Model
                     timeline.ProcessTaskEndEvent(e as TaskFinishedEventArgs);
                 }
             }
+
+            timeline.CalculateParallelExecutions();
 
             return timeline;
         }

@@ -50,6 +50,12 @@ namespace Model
             }
         }
 
+        public int NodeCount
+        {
+            get;
+            private set;
+        }
+
         private Solution m_solution;
         private Logger m_logger;
         private CompilationStatus m_status;
@@ -75,7 +81,8 @@ namespace Model
 
             ProjectCollection projectCollection = new ProjectCollection();
             BuildParameters parameters = new BuildParameters(projectCollection);
-            parameters.MaxNodeCount = 1;//Environment.ProcessorCount;
+            parameters.MaxNodeCount = Environment.ProcessorCount;
+            NodeCount = parameters.MaxNodeCount;
             parameters.UICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 
             parameters.Loggers = new[]

@@ -21,5 +21,11 @@ namespace Model
             get;
             set;
         }
+
+        public BuildEventContext ParentContext
+        {
+            get;
+            set;
+        }
     }
 }
