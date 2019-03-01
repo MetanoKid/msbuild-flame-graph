@@ -72,6 +72,14 @@
                                     Width="Auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
+                                <TextBlock Text="{Binding Timestamp}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Node"
+                                    Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
                                 <TextBlock Text="{Binding Context.NodeId}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>

@@ -90,8 +90,8 @@ namespace Model
 
         public bool OverlapsWith(BuildTimelineEntry entry)
         {
-            return StartBuildEvent.Timestamp <= entry.EndBuildEvent.Timestamp &&
-                   entry.StartBuildEvent.Timestamp <= EndBuildEvent.Timestamp;
+            return StartBuildEvent.Timestamp < entry.EndBuildEvent.Timestamp &&
+                   entry.StartBuildEvent.Timestamp < EndBuildEvent.Timestamp;
         }
     }
 
@@ -164,9 +164,10 @@ namespace Model
                 Debug.Assert(e.ParentProjectBuildEventContext.TaskId == BuildEventContext.InvalidTaskId);
                 Debug.Assert(e.ParentProjectBuildEventContext.TargetId == BuildEventContext.InvalidTargetId);
 
-                BuildTimelineEntry parent = m_unfinishedProjects.Find(entry =>
+                BuildTimelineEntry parent = m_unfinishedTasks.Find(entry =>
                 {
-                    return entry.StartBuildEvent.BuildEventContext == e.ParentProjectBuildEventContext;
+                    return entry.StartBuildEvent.BuildEventContext.ProjectContextId == e.ParentProjectBuildEventContext.ProjectContextId &&
+                           entry.StartBuildEvent.BuildEventContext.ProjectInstanceId == e.ParentProjectBuildEventContext.ProjectInstanceId;
                 });
                 Debug.Assert(parent != null);
 
@@ -257,9 +258,6 @@ namespace Model
 
         public void CalculateParallelExecutions()
         {
-            // TODO: target and task entries should calculate this as well?
-            // TODO: check why up to 12 ThreadIds, are they considering themselves invalid?
-
             Debug.Assert(IsCompleted());
 
             foreach(var list in PerNodeRootEntries)

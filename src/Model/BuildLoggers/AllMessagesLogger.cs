@@ -34,6 +34,7 @@ namespace Model
                 Message = e.Message,
                 Context = e.BuildEventContext,
                 ParentContext = e is ProjectStartedEventArgs ? (e as ProjectStartedEventArgs).ParentProjectBuildEventContext : null,
+                Timestamp = e.Timestamp,
             };
 
             m_onBuildMessage(message);

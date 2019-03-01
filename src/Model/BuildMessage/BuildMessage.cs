@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Framework;
+using System;
 
 namespace Model
 {
@@ -11,6 +12,12 @@ namespace Model
         }
 
         public string Message
+        {
+            get;
+            set;
+        }
+
+        public DateTime Timestamp
         {
             get;
             set;
