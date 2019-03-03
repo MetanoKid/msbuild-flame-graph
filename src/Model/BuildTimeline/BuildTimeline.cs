@@ -8,6 +8,8 @@ using System.Diagnostics;
 
 namespace Model
 {
+    using PerNodeThreadRootList = Dictionary<Tuple<int, int>, List<BuildTimelineEntry>>;
+
     public class CalculatedThreadAffinity
     {
         public int ThreadId
@@ -260,16 +262,18 @@ namespace Model
         {
             Debug.Assert(IsCompleted());
 
+            PerNodeThreadRootList threadRootEntries = new PerNodeThreadRootList();
+
             foreach(var list in PerNodeRootEntries)
             {
                 foreach(var rootEntry in list)
                 {
-                    CalculateParallelExecutionsForHierarchy(rootEntry);
+                    CalculateParallelExecutionsForHierarchy(rootEntry, threadRootEntries);
                 }
             }
         }
 
-        private void CalculateParallelExecutionsForHierarchy(BuildTimelineEntry entry)
+        private void CalculateParallelExecutionsForHierarchy(BuildTimelineEntry entry, PerNodeThreadRootList threadRootEntries)
         {
             if(entry.Parent != null)
             {
@@ -307,6 +311,41 @@ namespace Model
                 }
             }
 
+            // check for overlaps with other root entries within the calculated ThreadId
+            if (entry.StartBuildEvent.BuildEventContext != null && (entry.Parent == null || entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId))
+            {
+                Tuple<int, int> key = new Tuple<int, int>(entry.StartBuildEvent.BuildEventContext.NodeId, entry.ThreadAffinity.ThreadId);
+
+                List<BuildTimelineEntry> rootEntriesInThreadId = null;
+                threadRootEntries.TryGetValue(key, out rootEntriesInThreadId);
+                if (rootEntriesInThreadId == null)
+                {
+                    rootEntriesInThreadId = new List<BuildTimelineEntry>();
+                }
+
+                // look for overlaps
+                foreach (var rootEntry in rootEntriesInThreadId)
+                {
+                    Debug.Assert(rootEntry.ThreadAffinity.Calculated);
+
+                    if (entry.OverlapsWith(rootEntry))
+                    {
+                        entry.ThreadAffinity.InvalidThreadIds.Add(rootEntry.ThreadAffinity.ThreadId);
+                    }
+                }
+
+                // add it to the list
+                rootEntriesInThreadId.Add(entry);
+                threadRootEntries[key] = rootEntriesInThreadId;
+
+                // recalculate thread affinity
+                entry.ThreadAffinity.ThreadId = 0;
+                while (entry.ThreadAffinity.InvalidThreadIds.Contains(entry.ThreadAffinity.ThreadId))
+                {
+                    ++entry.ThreadAffinity.ThreadId;
+                }
+            }
+
             // pass calculated thread affinity data to children
             foreach (var child in entry.Children)
             {
@@ -318,7 +357,7 @@ namespace Model
 
             foreach (var child in entry.Children)
             {
-                CalculateParallelExecutionsForHierarchy(child);
+                CalculateParallelExecutionsForHierarchy(child, threadRootEntries);
             }
         }
     }

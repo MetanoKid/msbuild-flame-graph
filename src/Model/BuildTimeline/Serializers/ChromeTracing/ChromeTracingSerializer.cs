@@ -47,7 +47,7 @@ namespace Model
         {
             if(entry.ElapsedTime == TimeSpan.Zero)
             {
-                //return;
+                return;
             }
 
             // start event
