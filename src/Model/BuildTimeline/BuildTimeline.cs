@@ -8,6 +8,7 @@ using System.Diagnostics;
 
 namespace Model
 {
+    using System.Text.RegularExpressions;
     using PerNodeThreadRootList = Dictionary<Tuple<int, int>, List<BuildTimelineEntry>>;
 
     public class CalculatedThreadAffinity
@@ -78,10 +79,17 @@ namespace Model
             private set;
         }
 
+        public List<BuildMessageEventArgs> Messages
+        {
+            get;
+            private set;
+        }
+
         public BuildTimelineEntry()
         {
             ThreadAffinity = new CalculatedThreadAffinity();
             Children = new List<BuildTimelineEntry>();
+            Messages = new List<BuildMessageEventArgs>();
         }
 
         public void AddChild(BuildTimelineEntry entry)
@@ -99,8 +107,66 @@ namespace Model
 
     /////////////////////////////////////////////////
 
+    public class FileCompilation
+    {
+        public string FileName
+        {
+            get;
+            set;
+        }
+
+        public DateTime StartTimestamp
+        {
+            get;
+            set;
+        }
+
+        public DateTime EndTimestamp
+        {
+            get;
+            set;
+        }
+
+        public TimeSpan ElapsedTime
+        {
+            get
+            {
+                return EndTimestamp - StartTimestamp;
+            }
+        }
+    }
+
+    public class ParallelFileCompilation
+    {
+        public BuildTimelineEntry Parent
+        {
+            get;
+            private set;
+        }
+
+        public ParallelFileCompilation(BuildTimelineEntry entry)
+        {
+            Parent = entry;
+        }
+
+        public void StartFileCompilation(string fileName, DateTime timestamp)
+        {
+            // TODO: create FileCompilation entry, find out which thread it's assigned to, set start timestamp
+        }
+
+        public void EndFileCompilation(string fileName, DateTime timestamp)
+        {
+            // TODO: find associated FileCompilation (could be none), set end timestamp
+        }
+    }
+
+    /////////////////////////////////////////////////
+
     public class BuildTimeline
     {
+        private static Regex s_CompileFileStart = new Regex(@"^\w+\.(cpp|cc)$");
+        private static Regex s_CompileFileEnd = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
+
         public List<List<BuildTimelineEntry>> PerNodeRootEntries
         {
             get;
@@ -110,6 +176,8 @@ namespace Model
         private List<BuildTimelineEntry> m_unfinishedProjects;
         private List<BuildTimelineEntry> m_unfinishedTargets;
         private List<BuildTimelineEntry> m_unfinishedTasks;
+
+        private List<ParallelFileCompilation> m_unfinishedParallelFileCompilations;
 
         public BuildTimeline(int totalNodeCount)
         {
@@ -124,6 +192,8 @@ namespace Model
             m_unfinishedProjects = new List<BuildTimelineEntry>();
             m_unfinishedTargets = new List<BuildTimelineEntry>();
             m_unfinishedTasks = new List<BuildTimelineEntry>();
+
+            m_unfinishedParallelFileCompilations = new List<ParallelFileCompilation>();
         }
 
         // Build
@@ -238,6 +308,13 @@ namespace Model
 
             targetEntry.AddChild(taskEntry);
             m_unfinishedTasks.Add(taskEntry);
+
+            // special case: CL task
+            if(e.TaskName == "CL")
+            {
+                ParallelFileCompilation cl = new ParallelFileCompilation(taskEntry);
+                m_unfinishedParallelFileCompilations.Add(cl);
+            }
         }
 
         public void ProcessTaskEndEvent(TaskFinishedEventArgs e)
@@ -247,8 +324,81 @@ namespace Model
             });
             Debug.Assert(index != -1);
 
-            m_unfinishedTasks[index].EndBuildEvent = e;
+            BuildTimelineEntry taskEntry = m_unfinishedTasks[index];
+            taskEntry.EndBuildEvent = e;
             m_unfinishedTasks.RemoveAt(index);
+
+            // special case: CL task
+            if(e.TaskName == "CL")
+            {
+                index = m_unfinishedParallelFileCompilations.FindIndex(cl =>
+                {
+                    return cl.Parent == taskEntry;
+                });
+                Debug.Assert(index != -1);
+                m_unfinishedParallelFileCompilations.RemoveAt(index);
+            }
+        }
+
+        public void ProcessMessageEvent(BuildMessageEventArgs e)
+        {
+            BuildTimelineEntry parent = null;
+
+            if(e.BuildEventContext.NodeId == BuildEventContext.InvalidNodeId)
+            {
+                parent = PerNodeRootEntries[0][0];
+            }
+            else
+            {
+                parent = m_unfinishedTasks.Find(entry => entry.StartBuildEvent.BuildEventContext == e.BuildEventContext);
+
+                if(parent == null)
+                {
+                    parent = m_unfinishedTargets.Find(entry => entry.StartBuildEvent.BuildEventContext == e.BuildEventContext);
+
+                    if(parent == null)
+                    {
+                        parent = m_unfinishedProjects.Find(entry => entry.StartBuildEvent.BuildEventContext == e.BuildEventContext);
+                    }
+                }
+            }
+            Debug.Assert(parent != null);
+
+            parent.Messages.Add(e);
+
+            // special case: CL task
+            if(parent.StartBuildEvent is TaskStartedEventArgs)
+            {
+                TaskStartedEventArgs taskStarted = parent.StartBuildEvent as TaskStartedEventArgs;
+                if(taskStarted.TaskName == "CL")
+                {
+                    ProcessFileCompilationMessage(e, taskStarted);
+                }
+            }
+        }
+
+        private void ProcessFileCompilationMessage(BuildMessageEventArgs e, TaskStartedEventArgs parent)
+        {
+            Match compileFileStartMatch = s_CompileFileStart.Match(e.Message);
+            if(compileFileStartMatch.Success)
+            {
+                ParallelFileCompilation compilation = m_unfinishedParallelFileCompilations.Find(cl => cl.Parent.StartBuildEvent == parent);
+                Debug.Assert(compilation != null);
+
+                compilation.StartFileCompilation(compileFileStartMatch.Value, e.Timestamp);
+            }
+            else
+            {
+                Match compileFileEndMatch = s_CompileFileEnd.Match(e.Message);
+                if(compileFileEndMatch.Success)
+                {
+                    ParallelFileCompilation compilation = m_unfinishedParallelFileCompilations.Find(cl => cl.Parent.StartBuildEvent == parent);
+                    Debug.Assert(compilation != null);
+
+                    string fileName = compileFileEndMatch.Groups[1].Value.Split('\\').Last();
+                    compilation.EndFileCompilation(fileName, e.Timestamp);
+                }
+            }
         }
 
         public bool IsCompleted()

@@ -24,12 +24,7 @@ namespace Model
             }
 
             BuildTimeline timeline = new BuildTimeline(m_compilation.NodeCount);
-            List<BuildEventArgs> rawBuildEvents = m_compilation.GetBuildEvents();
-
-            // filter out BuildMessageEventArgs, we don't want the extra data
-            IEnumerable<BuildEventArgs> buildEvents = rawBuildEvents.Where(e => !(e is BuildMessageEventArgs));
-
-            foreach(BuildEventArgs e in buildEvents)
+            foreach(BuildEventArgs e in m_compilation.GetBuildEvents())
             {
                 if(e is BuildStartedEventArgs)
                 {
@@ -62,6 +57,10 @@ namespace Model
                 else if (e is TaskFinishedEventArgs)
                 {
                     timeline.ProcessTaskEndEvent(e as TaskFinishedEventArgs);
+                }
+                else if(e is BuildMessageEventArgs)
+                {
+                    timeline.ProcessMessageEvent(e as BuildMessageEventArgs);
                 }
             }
 
