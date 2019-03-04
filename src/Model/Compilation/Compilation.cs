@@ -8,6 +8,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System.Diagnostics;
+using System.IO;
 
 namespace Model
 {
@@ -95,6 +96,8 @@ namespace Model
             globalProperties.Add("Configuration", configuration);
             globalProperties.Add("Platform", platform);
             
+            globalProperties.Add("ForceImportBeforeCppTargets", Path.GetFullPath(@"Resources\ExtraCompilerLinkerOptions.props"));
+
             BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { target }, null);
 
             // will hang until compilation completes
