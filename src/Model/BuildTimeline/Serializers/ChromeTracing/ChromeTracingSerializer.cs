@@ -13,6 +13,8 @@ namespace Model
 {
     public class ChromeTracingSerializer
     {
+        private static int s_FileCompilationThreadIdOffset = 100;
+
         public static void Serialize(BuildTimeline timeline)
         {
             // build timeline
@@ -38,6 +40,11 @@ namespace Model
                 {
                     ExtractEventsIntoTrace(rootEntry, buildStartTimestamp, trace.traceEvents);
                 }
+            }
+
+            foreach(var parallelFileCompilation in timeline.ParallelFileCompilations)
+            {
+                ExtractParallelFileCompilationIntoTrace(parallelFileCompilation, buildStartTimestamp, trace.traceEvents);
             }
 
             return trace;
@@ -104,6 +111,40 @@ namespace Model
             Debug.Assert(name != null);
 
             return name;
+        }
+
+        private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)
+        {
+            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext != null);
+            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId != BuildEventContext.InvalidNodeId);
+
+            foreach (var fileCompilation in parallelFileCompilation.Compilations)
+            {
+                int pid = parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId;
+                int tid = fileCompilation.ThreadId + s_FileCompilationThreadIdOffset * (parallelFileCompilation.Parent.ThreadAffinity.ThreadId + 1);
+
+                // start event
+                ChromeTracingEvent startEvent = new ChromeTracingEvent()
+                {
+                    ph = 'B',
+                    pid = pid,
+                    tid = tid,
+                    ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
+                    name = fileCompilation.FileName,
+                };
+                events.Add(startEvent);
+
+                // end event
+                ChromeTracingEvent endEvent = new ChromeTracingEvent()
+                {
+                    ph = 'E',
+                    pid = pid,
+                    tid = tid,
+                    ts = (fileCompilation.EndTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
+                    name = fileCompilation.FileName,
+                };
+                events.Add(endEvent);
+            }
         }
     }
 }

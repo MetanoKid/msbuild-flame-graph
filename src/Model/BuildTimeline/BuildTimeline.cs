@@ -134,6 +134,12 @@ namespace Model
                 return EndTimestamp - StartTimestamp;
             }
         }
+
+        public int ThreadId
+        {
+            get;
+            set;
+        }
     }
 
     public class ParallelFileCompilation
@@ -144,19 +150,59 @@ namespace Model
             private set;
         }
 
+        public bool IsCompleted
+        {
+            get
+            {
+                return m_unfinishedCompilations.Count == 0;
+            }
+        }
+
+        public List<FileCompilation> Compilations
+        {
+            get;
+            private set;
+        }
+
+        private List<FileCompilation> m_unfinishedCompilations;
+
         public ParallelFileCompilation(BuildTimelineEntry entry)
         {
             Parent = entry;
+            m_unfinishedCompilations = new List<FileCompilation>();
+            Compilations = new List<FileCompilation>();
         }
 
         public void StartFileCompilation(string fileName, DateTime timestamp)
         {
-            // TODO: create FileCompilation entry, find out which thread it's assigned to, set start timestamp
+            FileCompilation fileCompilation = new FileCompilation()
+            {
+                FileName = fileName,
+                StartTimestamp = timestamp,
+                ThreadId = 0,
+            };
+
+            // find out which thread it was assigned to
+            while(m_unfinishedCompilations.Exists(cl => cl.ThreadId == fileCompilation.ThreadId))
+            {
+                ++fileCompilation.ThreadId;
+            }
+
+            m_unfinishedCompilations.Add(fileCompilation);
         }
 
         public void EndFileCompilation(string fileName, DateTime timestamp)
         {
-            // TODO: find associated FileCompilation (could be none), set end timestamp
+            int index = m_unfinishedCompilations.FindIndex(cl => cl.FileName == fileName);
+            if(index != -1)
+            {
+                FileCompilation fileCompilation = m_unfinishedCompilations[index];
+                fileCompilation.EndTimestamp = timestamp;
+                Debug.Assert(fileCompilation.ElapsedTime >= TimeSpan.Zero);
+
+                m_unfinishedCompilations.RemoveAt(index);
+                Compilations.Add(fileCompilation);
+            }
         }
     }
 
@@ -164,13 +210,30 @@ namespace Model
 
     public class BuildTimeline
     {
-        private static Regex s_CompileFileStart = new Regex(@"^\w+\.(cpp|cc)$");
+        private static Regex s_CompileFileStart = new Regex(@"^\w+\.(cpp|cc|c)$");
         private static Regex s_CompileFileEnd = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
 
         public List<List<BuildTimelineEntry>> PerNodeRootEntries
         {
             get;
             private set;
+        }
+
+        public List<ParallelFileCompilation> ParallelFileCompilations
+        {
+            get;
+            private set;
+        }
+
+        public bool IsCompleted
+        {
+            get
+            {
+                return m_unfinishedProjects.Count == 0 &&
+                       m_unfinishedTargets.Count == 0 &&
+                       m_unfinishedTasks.Count == 0 &&
+                       m_unfinishedParallelFileCompilations.Count == 0;
+            }
         }
 
         private List<BuildTimelineEntry> m_unfinishedProjects;
@@ -188,6 +251,8 @@ namespace Model
             {
                 PerNodeRootEntries.Add(new List<BuildTimelineEntry>());
             }
+
+            ParallelFileCompilations = new List<ParallelFileCompilation>();
 
             m_unfinishedProjects = new List<BuildTimelineEntry>();
             m_unfinishedTargets = new List<BuildTimelineEntry>();
@@ -331,11 +396,15 @@ namespace Model
             // special case: CL task
             if(e.TaskName == "CL")
             {
+                
                 index = m_unfinishedParallelFileCompilations.FindIndex(cl =>
                 {
                     return cl.Parent == taskEntry;
                 });
                 Debug.Assert(index != -1);
+                Debug.Assert(m_unfinishedParallelFileCompilations[index].IsCompleted);
+                
+                ParallelFileCompilations.Add(m_unfinishedParallelFileCompilations[index]);
                 m_unfinishedParallelFileCompilations.RemoveAt(index);
             }
         }
@@ -401,16 +470,9 @@ namespace Model
             }
         }
 
-        public bool IsCompleted()
-        {
-            return m_unfinishedProjects.Count == 0 &&
-                   m_unfinishedTargets.Count == 0 &&
-                   m_unfinishedTasks.Count == 0;
-        }
-
         public void CalculateParallelExecutions()
         {
-            Debug.Assert(IsCompleted());
+            Debug.Assert(IsCompleted);
 
             PerNodeThreadRootList threadRootEntries = new PerNodeThreadRootList();
 

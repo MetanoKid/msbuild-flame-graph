@@ -69,7 +69,7 @@ namespace Builder
 
             Model.BuildTimelineBuilder builder = new Model.BuildTimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
             Model.BuildTimeline timeline = builder.Process();
-            Debug.Assert(timeline.IsCompleted());
+            Debug.Assert(timeline.IsCompleted);
 
             Model.ChromeTracingSerializer.Serialize(timeline);
         }
