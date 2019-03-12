@@ -8,9 +8,41 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Model
 {
+    public class IgnoreNullValuesConverter : JavaScriptConverter
+    {
+        public override IEnumerable<Type> SupportedTypes
+        {
+            get
+            {
+                return new Type[] { typeof(ChromeTrace), typeof(ChromeTracingEvent) };
+            }
+        }
+
+        public override object Deserialize(IDictionary<string, object> dictionary, Type type, JavaScriptSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IDictionary<string, object> Serialize(object obj, JavaScriptSerializer serializer)
+        {
+            Dictionary<string, object> jsonObject = new Dictionary<string, object>();
+            foreach(var field in obj.GetType().GetFields())
+            {
+                var value = field.GetValue(obj);
+                if(value != null)
+                {
+                    jsonObject.Add(field.Name, value);
+                }
+            }
+
+            return jsonObject;
+        }
+    }
+
     public class ChromeTracingSerializer
     {
         private static int s_ParallelProjectThreadOffset = 100;
@@ -22,6 +54,7 @@ namespace Model
 
             // serialize to JSON
             JavaScriptSerializer serializer = new JavaScriptSerializer();
+            serializer.RegisterConverters(new JavaScriptConverter[] { new IgnoreNullValuesConverter() });
             string json = serializer.Serialize(trace);
 
             // write to file
