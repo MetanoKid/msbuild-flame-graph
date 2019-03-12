@@ -109,23 +109,15 @@ namespace Model
 
     public class FileCompilation
     {
-        public string FileName
-        {
-            get;
-            set;
-        }
+        public string FileName;
+        public DateTime StartTimestamp;
+        public DateTime EndTimestamp;
+        public int ThreadId;
 
-        public DateTime StartTimestamp
-        {
-            get;
-            set;
-        }
-
-        public DateTime EndTimestamp
-        {
-            get;
-            set;
-        }
+        public DateTime FrontEndFinishTime;
+        public string FrontEndFinishMessage;
+        public DateTime BackEndFinishTime;
+        public string BackEndFinishMessage;
 
         public TimeSpan ElapsedTime
         {
@@ -133,12 +125,6 @@ namespace Model
             {
                 return EndTimestamp - StartTimestamp;
             }
-        }
-
-        public int ThreadId
-        {
-            get;
-            set;
         }
     }
 
@@ -191,13 +177,26 @@ namespace Model
             m_unfinishedCompilations.Add(fileCompilation);
         }
 
-        public void EndFileCompilation(string fileName, DateTime timestamp)
+        public void EndFrontEndCompilation(string fileName, DateTime timestamp, string message)
+        {
+            FileCompilation fileCompilation = m_unfinishedCompilations.Find(cl => cl.FileName == fileName);
+            if(fileCompilation != null)
+            {
+                fileCompilation.FrontEndFinishTime = timestamp;
+                fileCompilation.FrontEndFinishMessage = message;
+            }
+        }
+
+        public void EndFileCompilation(string fileName, DateTime timestamp, string message)
         {
             int index = m_unfinishedCompilations.FindIndex(cl => cl.FileName == fileName);
             if(index != -1)
             {
                 FileCompilation fileCompilation = m_unfinishedCompilations[index];
+                fileCompilation.BackEndFinishTime = timestamp;
                 fileCompilation.EndTimestamp = timestamp;
+                fileCompilation.BackEndFinishMessage = message;
+
                 Debug.Assert(fileCompilation.ElapsedTime >= TimeSpan.Zero);
 
                 m_unfinishedCompilations.RemoveAt(index);
@@ -211,7 +210,8 @@ namespace Model
     public class BuildTimeline
     {
         private static Regex s_CompileFileStart = new Regex(@"^\w+\.(cpp|cc|c)$");
-        private static Regex s_CompileFileEnd = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
+        private static Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+c1xx.dll\).+\[(.+)\]$");
+        private static Regex s_CompileBackEndFinish = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
 
         public List<List<BuildTimelineEntry>> PerNodeRootEntries
         {
@@ -448,24 +448,33 @@ namespace Model
 
         private void ProcessFileCompilationMessage(BuildMessageEventArgs e, TaskStartedEventArgs parent)
         {
-            Match compileFileStartMatch = s_CompileFileStart.Match(e.Message);
-            if(compileFileStartMatch.Success)
+            ParallelFileCompilation compilation = m_unfinishedParallelFileCompilations.Find(cl => cl.Parent.StartBuildEvent == parent);
+            if(compilation != null)
             {
-                ParallelFileCompilation compilation = m_unfinishedParallelFileCompilations.Find(cl => cl.Parent.StartBuildEvent == parent);
-                Debug.Assert(compilation != null);
-
-                compilation.StartFileCompilation(compileFileStartMatch.Value, e.Timestamp);
-            }
-            else
-            {
-                Match compileFileEndMatch = s_CompileFileEnd.Match(e.Message);
-                if(compileFileEndMatch.Success)
+                Match compileFileStartMatch = s_CompileFileStart.Match(e.Message);
+                if(compileFileStartMatch.Success)
                 {
-                    ParallelFileCompilation compilation = m_unfinishedParallelFileCompilations.Find(cl => cl.Parent.StartBuildEvent == parent);
-                    Debug.Assert(compilation != null);
+                    compilation.StartFileCompilation(compileFileStartMatch.Value, e.Timestamp);
 
-                    string fileName = compileFileEndMatch.Groups[1].Value.Split('\\').Last();
-                    compilation.EndFileCompilation(fileName, e.Timestamp);
+                    return;
+                }
+
+                Match frontendFinishMatch = s_CompileFrontEndFinish.Match(e.Message);
+                if(frontendFinishMatch.Success)
+                {
+                    string fileName = frontendFinishMatch.Groups[1].Value.Split('\\').Last();
+                    compilation.EndFrontEndCompilation(fileName, e.Timestamp, e.Message);
+
+                    return;
+                }
+
+                Match backendFinishMatch = s_CompileBackEndFinish.Match(e.Message);
+                if(backendFinishMatch.Success)
+                {
+                    string fileName = backendFinishMatch.Groups[1].Value.Split('\\').Last();
+                    compilation.EndFileCompilation(fileName, e.Timestamp, e.Message);
+
+                    return;
                 }
             }
         }

@@ -12,7 +12,10 @@ namespace Model
         public char ph;
         public int tid = 0;
         public int pid = 0;
-        public double ts;
+        public double ts = 0.0;
+        public double dur = 0.0;
         public string name;
+        public Dictionary<string, string> args = null;
+        public string cat;
     }
 }

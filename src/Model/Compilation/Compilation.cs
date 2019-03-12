@@ -95,6 +95,9 @@ namespace Model
             Dictionary<string, string> globalProperties = new Dictionary<string, string>();
             globalProperties.Add("Configuration", configuration);
             globalProperties.Add("Platform", platform);
+
+            // TODO: process non-parallel compilations correctly
+            //globalProperties.Add("CL_MPCount", "1");
             
             globalProperties.Add("ForceImportBeforeCppTargets", Path.GetFullPath(@"Resources\ExtraCompilerLinkerOptions.props"));
 

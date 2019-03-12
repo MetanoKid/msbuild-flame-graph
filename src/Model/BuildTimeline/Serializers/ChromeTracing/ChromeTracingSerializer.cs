@@ -13,7 +13,7 @@ namespace Model
 {
     public class ChromeTracingSerializer
     {
-        private static int s_FileCompilationThreadIdOffset = 100;
+        private static int s_ParallelProjectThreadOffset = 100;
 
         public static void Serialize(BuildTimeline timeline)
         {
@@ -62,7 +62,7 @@ namespace Model
             {
                 ph = 'B',
                 pid = entry.StartBuildEvent.BuildEventContext != null ? entry.StartBuildEvent.BuildEventContext.NodeId : 0,
-                tid = entry.ThreadAffinity.ThreadId,
+                tid = entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
                 ts = (entry.StartBuildEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
                 name = ExtractTracingNameFrom(entry.StartBuildEvent),
             };
@@ -80,7 +80,7 @@ namespace Model
             {
                 ph = 'E',
                 pid = entry.EndBuildEvent.BuildEventContext != null ? entry.EndBuildEvent.BuildEventContext.NodeId : 0,
-                tid = entry.ThreadAffinity.ThreadId,
+                tid = entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
                 ts = (entry.EndBuildEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
                 name = ExtractTracingNameFrom(entry.StartBuildEvent),
             };
@@ -121,7 +121,8 @@ namespace Model
             foreach (var fileCompilation in parallelFileCompilation.Compilations)
             {
                 int pid = parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId;
-                int tid = fileCompilation.ThreadId + s_FileCompilationThreadIdOffset * (parallelFileCompilation.Parent.ThreadAffinity.ThreadId + 1);
+                int tid = parallelFileCompilation.Parent.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset +
+                          fileCompilation.ThreadId + 1;
 
                 // start event
                 ChromeTracingEvent startEvent = new ChromeTracingEvent()
@@ -133,6 +134,36 @@ namespace Model
                     name = fileCompilation.FileName,
                 };
                 events.Add(startEvent);
+
+                // frontend compilation
+                ChromeTracingEvent frontendEvent = new ChromeTracingEvent()
+                {
+                    ph = 'X',
+                    pid = pid,
+                    tid = tid,
+                    ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
+                    dur = (fileCompilation.FrontEndFinishTime - fileCompilation.StartTimestamp).TotalMilliseconds * 1000.0f,
+                    name = "c1xx.dll",
+                    args = new Dictionary<string, string> {
+                        { "/Bt+", fileCompilation.FrontEndFinishMessage }
+                    },
+                };
+                events.Add(frontendEvent);
+
+                // backend compilation
+                ChromeTracingEvent backendEvent = new ChromeTracingEvent()
+                {
+                    ph = 'X',
+                    pid = pid,
+                    tid = tid,
+                    ts = (fileCompilation.FrontEndFinishTime - startTimestamp).TotalMilliseconds * 1000.0,
+                    dur = (fileCompilation.BackEndFinishTime - fileCompilation.FrontEndFinishTime).TotalMilliseconds * 1000.0f,
+                    name = "c2.dll",
+                    args = new Dictionary<string, string> {
+                        { "/Bt+", fileCompilation.BackEndFinishMessage }
+                    },
+                };
+                events.Add(backendEvent);
 
                 // end event
                 ChromeTracingEvent endEvent = new ChromeTracingEvent()
