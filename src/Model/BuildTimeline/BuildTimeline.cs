@@ -209,7 +209,7 @@ namespace Model
 
     public class BuildTimeline
     {
-        private static Regex s_CompileFileStart = new Regex(@"^\w+\.(cpp|cc|c)$");
+        private static Regex s_CompileFileStart = new Regex(@"^[^\s]+\.(cpp|cc|c)$");
         private static Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+c1xx.dll\).+\[(.+)\]$");
         private static Regex s_CompileBackEndFinish = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
 
