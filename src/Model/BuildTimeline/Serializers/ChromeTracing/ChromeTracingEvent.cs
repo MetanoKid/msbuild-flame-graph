@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Model
 {
@@ -9,13 +10,12 @@ namespace Model
 
     class ChromeTracingEvent
     {
-        public char ph;
-        public int tid = 0;
-        public int pid = 0;
-        public double ts = 0.0;
-        public double dur = 0.0;
+        public Nullable<char> ph;
+        public Nullable<int> pid;
+        public Nullable<int> tid;
+        public Nullable<double> ts;
+        public Nullable<double> dur;
         public string name;
-        public Dictionary<string, string> args = null;
-        public string cat;
+        public Dictionary<string, string> args;
     }
 }
