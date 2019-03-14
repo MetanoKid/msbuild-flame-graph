@@ -47,7 +47,7 @@ namespace Model
     {
         private static int s_ParallelProjectThreadOffset = 100;
 
-        public static void Serialize(BuildTimeline timeline)
+        public static string Serialize(BuildTimeline timeline)
         {
             // build timeline
             ChromeTrace trace = BuildTrace(timeline);
@@ -55,10 +55,7 @@ namespace Model
             // serialize to JSON
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             serializer.RegisterConverters(new JavaScriptConverter[] { new IgnoreNullValuesConverter() });
-            string json = serializer.Serialize(trace);
-
-            // write to file
-            File.WriteAllText("Build timeline.json", json);
+            return serializer.Serialize(trace);
         }
 
         private static ChromeTrace BuildTrace(BuildTimeline timeline)

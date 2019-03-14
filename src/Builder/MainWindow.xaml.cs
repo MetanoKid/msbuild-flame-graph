@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Diagnostics;
+using System.IO;
 
 namespace Builder
 {
@@ -71,7 +72,14 @@ namespace Builder
             Model.BuildTimeline timeline = builder.Process();
             Debug.Assert(timeline.IsCompleted);
 
-            Model.ChromeTracingSerializer.Serialize(timeline);
+            string text = Model.ChromeTracingSerializer.Serialize(timeline);
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "JSON files (*.json)|*.json";
+
+            if(dialog.ShowDialog() == true)
+            {
+                File.WriteAllText(dialog.FileName, text);
+            }
         }
     }
 }
