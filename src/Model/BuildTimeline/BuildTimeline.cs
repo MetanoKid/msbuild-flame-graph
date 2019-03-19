@@ -116,6 +116,7 @@ namespace Model
 
         public DateTime FrontEndFinishTime;
         public string FrontEndFinishMessage;
+        public string FrontEndDLL;
         public DateTime BackEndFinishTime;
         public string BackEndFinishMessage;
 
@@ -177,13 +178,14 @@ namespace Model
             m_unfinishedCompilations.Add(fileCompilation);
         }
 
-        public void EndFrontEndCompilation(string fileName, DateTime timestamp, string message)
+        public void EndFrontEndCompilation(string fileName, DateTime timestamp, string message, string frontEndDLL)
         {
             FileCompilation fileCompilation = m_unfinishedCompilations.Find(cl => cl.FileName == fileName);
             if(fileCompilation != null)
             {
                 fileCompilation.FrontEndFinishTime = timestamp;
                 fileCompilation.FrontEndFinishMessage = message;
+                fileCompilation.FrontEndDLL = frontEndDLL;
             }
         }
 
@@ -210,7 +212,7 @@ namespace Model
     public class BuildTimeline
     {
         private static Regex s_CompileFileStart = new Regex(@"^[^\s]+\.(cpp|cc|c)$");
-        private static Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+c1xx.dll\).+\[(.+)\]$");
+        private static Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+(c1\.dll|c1xx\.dll)\).+\[(.+)\]$");
         private static Regex s_CompileBackEndFinish = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
 
         public List<List<BuildTimelineEntry>> PerNodeRootEntries
@@ -462,8 +464,8 @@ namespace Model
                 Match frontendFinishMatch = s_CompileFrontEndFinish.Match(e.Message);
                 if(frontendFinishMatch.Success)
                 {
-                    string fileName = frontendFinishMatch.Groups[1].Value.Split('\\').Last();
-                    compilation.EndFrontEndCompilation(fileName, e.Timestamp, e.Message);
+                    string fileName = frontendFinishMatch.Groups[2].Value.Split('\\').Last();
+                    compilation.EndFrontEndCompilation(fileName, e.Timestamp, e.Message, frontendFinishMatch.Groups[1].Value);
 
                     return;
                 }

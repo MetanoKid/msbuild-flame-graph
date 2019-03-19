@@ -180,7 +180,7 @@ namespace Model
                     tid = tid,
                     ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
                     dur = (fileCompilation.FrontEndFinishTime - fileCompilation.StartTimestamp).TotalMilliseconds * 1000.0f,
-                    name = "c1xx.dll",
+                    name = fileCompilation.FrontEndDLL,
                     args = new Dictionary<string, string> {
                         { "/Bt+", fileCompilation.FrontEndFinishMessage }
                     },
