@@ -49,8 +49,12 @@
     <Compile Include="BuildMessage\BuildMessage.cs" />
     <Compile Include="BuildTimeline\BuildTimeline.cs" />
     <Compile Include="BuildTimeline\BuildTimelineBuilder.cs" />
+    <Compile Include="BuildTimeline\BuildTimelineEntry.cs" />
+    <Compile Include="BuildTimeline\FileCompilation.cs" />
+    <Compile Include="BuildTimeline\ParallelFileCompilation.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingEvent.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingSerializer.cs" />
+    <Compile Include="BuildTimeline\ThreadAffinity.cs" />
     <Compile Include="Compilation\Compilation.cs" />
     <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\CompilationStatus.cs" />
