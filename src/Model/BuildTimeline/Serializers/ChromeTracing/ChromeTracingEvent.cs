@@ -15,6 +15,7 @@ namespace Model
         public Nullable<int> tid;
         public Nullable<double> ts;
         public Nullable<double> dur;
+        public string cname;
         public string name;
         public Dictionary<string, string> args;
     }

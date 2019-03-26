@@ -46,6 +46,8 @@ namespace Model
     public class ChromeTracingSerializer
     {
         private static int s_ParallelProjectThreadOffset = 100;
+        private static string s_CompilerFrontendColor = "grey";
+        private static string s_CompilerBackendColor = "grey";
 
         public static string Serialize(BuildTimeline timeline)
         {
@@ -184,6 +186,7 @@ namespace Model
                     args = new Dictionary<string, string> {
                         { "/Bt+", fileCompilation.FrontEndFinishMessage }
                     },
+                    cname = s_CompilerFrontendColor
                 });
 
                 // backend compilation
@@ -198,6 +201,7 @@ namespace Model
                     args = new Dictionary<string, string> {
                         { "/Bt+", fileCompilation.BackEndFinishMessage }
                     },
+                    cname = s_CompilerBackendColor
                 });
 
                 // end event
