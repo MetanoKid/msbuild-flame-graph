@@ -11,9 +11,27 @@ using System.Threading.Tasks;
 
 namespace Model
 {
-    class IgnoreNonInterestingPropertiesContractResolver : DefaultContractResolver
+    class MSBuildEventTypeNameProvider : IValueProvider
     {
-        private List<string> m_ignoredPropertyNames = new List<string>()
+        public object GetValue(object target)
+        {
+            if(!(target is BuildEventArgs))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return target.GetType().Name;
+        }
+
+        public void SetValue(object target, object value)
+        {
+            throw new InvalidOperationException();
+        }
+    }
+
+    class AddTypeIngoreNonInterestingPropertiesContractResolver : DefaultContractResolver
+    {
+        private static List<string> s_ignoredPropertyNames = new List<string>()
         {
             "BuildEnvironment",
             "Properties",
@@ -21,10 +39,27 @@ namespace Model
             "GlobalProperties"
         };
 
+        private static MSBuildEventTypeNameProvider s_eventTypeNameProvider = new MSBuildEventTypeNameProvider();
+
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
         {
             IList<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
-            return properties.Where(p => !m_ignoredPropertyNames.Contains(p.PropertyName)).ToList();
+
+            // add type to MSBuild's BuildEventArgs
+            if(type.IsSubclassOf(typeof(BuildEventArgs)) || type == typeof(BuildEventArgs))
+            {
+                JsonProperty typeProperty = new JsonProperty()
+                {
+                    PropertyName = "EventType",
+                    PropertyType = typeof(string),
+                    Readable = true,
+                    Writable = false,
+                    ValueProvider = s_eventTypeNameProvider
+                };
+                properties.Add(typeProperty);
+            }
+
+            return properties.Where(p => !s_ignoredPropertyNames.Contains(p.PropertyName)).ToList();
         }
     }
 
@@ -57,7 +92,7 @@ namespace Model
                 Formatting.Indented,
                 new JsonSerializerSettings()
                 {
-                    ContractResolver = new IgnoreNonInterestingPropertiesContractResolver(),
+                    ContractResolver = new AddTypeIngoreNonInterestingPropertiesContractResolver(),
                     NullValueHandling = NullValueHandling.Ignore
                 });
 
