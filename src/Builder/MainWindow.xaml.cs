@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,7 +26,7 @@ namespace Builder
         private void LoadSolution(string path)
         {
             m_viewModel.Solution = new Model.Solution(path);
-            m_viewModel.SolutionCompiler = new Model.SolutionCompiler(OnBuildMessage);
+            m_viewModel.SolutionCompiler = new Model.SolutionCompiler();
             m_viewModel.BuildMessages = new System.Collections.ObjectModel.ObservableCollection<Model.BuildMessage>();
             m_viewModel.BuildMessages.CollectionChanged += ScrollBuildMessageToBottom;
         }
@@ -61,7 +62,25 @@ namespace Builder
         private void OnClickBuildSolution(object sender, RoutedEventArgs e)
         {
             m_viewModel.BuildMessages.Clear();
-            Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution, "Debug", "x64", "Rebuild"));
+
+            List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+            dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(OnBuildMessage));
+
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "JSON file (*.json)|*.json";
+            if(dialog.ShowDialog() == true)
+            {
+                dataExtractors.Add(new Model.DumpToJSONFileDataExtractor(dialog.FileName));
+
+                Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
+                                                                  m_viewModel.BuildConfiguration, 
+                                                                  m_viewModel.BuildPlatform,
+                                                                  m_viewModel.BuildTarget,
+                                                                  Environment.ProcessorCount,
+                                                                  Environment.ProcessorCount,
+                                                                  dataExtractors));
+            }
+
         }
 
         private void OnClickSaveBuildTimeline(object sender, RoutedEventArgs e)

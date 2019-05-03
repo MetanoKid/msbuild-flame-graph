@@ -52,8 +52,53 @@ namespace Builder
             }
         }
 
+        public string BuildConfiguration
+        {
+            get
+            {
+                return m_buildConfiguration;
+            }
+
+            set
+            {
+                m_buildConfiguration = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string BuildPlatform
+        {
+            get
+            {
+                return m_buildPlatform;
+            }
+
+            set
+            {
+                m_buildPlatform = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string BuildTarget
+        {
+            get
+            {
+                return m_buildTarget;
+            }
+
+            set
+            {
+                m_buildTarget = value;
+                OnPropertyChanged();
+            }
+        }
+
         private Solution m_solution;
         private SolutionCompiler m_solutionCompiler;
         private ObservableCollection<Model.BuildMessage> m_buildMessages;
+        private string m_buildConfiguration;
+        private string m_buildTarget;
+        private string m_buildPlatform;
     }
 }

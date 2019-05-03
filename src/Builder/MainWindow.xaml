@@ -10,7 +10,6 @@
     <DockPanel>
         <Border BorderThickness="0"
                 Padding="5"
-                Height="Auto"
                 DockPanel.Dock="Top">
             <DockPanel>
                 <Button x:Name="Browse"
@@ -26,18 +25,36 @@
                          Text="{Binding Solution.Path, Mode=OneWay}" />
             </DockPanel>
         </Border>
-        <Button DockPanel.Dock="Bottom"
-                Content="Build solution"
-                HorizontalAlignment="Center"
-                Padding="10,3"
-                Margin="0,5"
-                Click="OnClickBuildSolution"/>
-        <Button DockPanel.Dock="Bottom"
-                Content="Save build timeline"
-                HorizontalAlignment="Center"
-                Padding="10,3"
-                Margin="0,5"
-                Click="OnClickSaveBuildTimeline"/>
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,5">
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,30,0">
+                <Label>Configuration</Label>
+                <TextBox Width="60"
+                         Padding="2"
+                         Text="{Binding BuildConfiguration}" ToolTip="Debug, Release, ..." VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,30,0">
+                <Label>Platform</Label>
+                <TextBox Width="60"
+                         Padding="2"
+                         Text="{Binding BuildPlatform}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,30,0">
+                <Label>Target</Label>
+                <TextBox Width="60"
+                         Padding="2"
+                         Text="{Binding BuildTarget}" VerticalAlignment="Center"></TextBox>
+            </StackPanel>
+            <Button Content="Build solution"
+                    HorizontalAlignment="Center"
+                    Padding="10,3"
+                    Click="OnClickBuildSolution"/>
+        </StackPanel>
         <ListView Name="BuildMessageList"
                   ItemsSource="{Binding BuildMessages}">
             <ListView.ItemContainerStyle>

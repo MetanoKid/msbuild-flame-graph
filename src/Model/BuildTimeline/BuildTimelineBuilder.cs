@@ -23,8 +23,9 @@ namespace Model
                 return null;
             }
 
-            BuildTimeline timeline = new BuildTimeline(m_compilation.NodeCount);
-            foreach(BuildEventArgs e in m_compilation.GetBuildEvents())
+            BuildTimeline timeline = new BuildTimeline(0/*m_compilation.NodeCount*/);
+            List<BuildEventArgs> messages = new List<BuildEventArgs>();
+            foreach(BuildEventArgs e in messages/*m_compilation.GetBuildEvents()*/)
             {
                 if(e is BuildStartedEventArgs)
                 {

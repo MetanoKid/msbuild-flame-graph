@@ -33,6 +33,10 @@
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Extensions" />
@@ -45,6 +49,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildLoggers\AllMessagesLogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToCallbackLogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToCallbackRawLogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToCallbackUILogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToFileLogger.cs" />
     <Compile Include="BuildLoggers\BuildEventsRecordLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
     <Compile Include="BuildTimeline\BuildTimeline.cs" />
@@ -60,6 +68,9 @@
     <Compile Include="Compilation\CompilationStatus.cs" />
     <Compile Include="DiskFile\DiskFile.cs" />
     <Compile Include="PropertyChangeNotifier\PropertyChangeNotifier.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\CallbackPerMessageDataExtractor.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\CompilationDataExtractor.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\DumpToJSONFileDataExtractor.cs" />
     <Compile Include="SolutionCompiler\SolutionCompiler.cs" />
     <Compile Include="Solution\Solution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -68,6 +79,9 @@
     <Content Include="Resources\ExtraCompilerLinkerOptions.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

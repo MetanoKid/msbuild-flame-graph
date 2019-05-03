@@ -43,7 +43,7 @@ namespace Model
             }
         }
 
-        public bool IsReady
+        /*public bool IsReady
         {
             get
             {
@@ -55,57 +55,53 @@ namespace Model
         {
             get;
             private set;
-        }
+        }*/
 
         private Solution m_solution;
-        private Logger m_logger;
         private CompilationStatus m_status;
         private CompilationResult m_result;
 
         private BuildEventsRecordLogger m_buildEventsRecordLogger;
 
-        public Compilation(Solution solution, Logger logger)
+        public Compilation(Solution solution)
         {
             Status = CompilationStatus.NotStarted;
             Result = CompilationResult.None;
-            m_buildEventsRecordLogger = new BuildEventsRecordLogger();
-
             m_solution = solution;
-            m_logger = logger;
+            //m_buildEventsRecordLogger = new BuildEventsRecordLogger();
         }
 
-        public void Start(string configuration, string platform, string target)
+        public void Start(string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
         {
             Debug.Assert(Status == CompilationStatus.NotStarted);
 
             Status = CompilationStatus.InProgress;
 
+            // build the data to invoke MSBuild
             ProjectCollection projectCollection = new ProjectCollection();
             BuildParameters parameters = new BuildParameters(projectCollection);
-            parameters.MaxNodeCount = Environment.ProcessorCount;
-            NodeCount = parameters.MaxNodeCount;
+            parameters.MaxNodeCount = maxParallelProjects;
             parameters.UICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
-
-            parameters.Loggers = new[]
-            {
-                m_logger,
-                m_buildEventsRecordLogger
-            };
+            parameters.Loggers = dataExtractors.Select(e => e.Logger);
 
             Dictionary<string, string> globalProperties = new Dictionary<string, string>();
             globalProperties.Add("Configuration", configuration);
             globalProperties.Add("Platform", platform);
-
-            // TODO: process non-parallel compilations correctly
-            //globalProperties.Add("CL_MPCount", "1");
+            globalProperties.Add("CL_MPCount", maxParallelCL.ToString());
             
+            // add extra info to some tasks (CL, Lib/Link, ...)
             globalProperties.Add("ForceImportBeforeCppTargets", Path.GetFullPath(@"Resources\ExtraCompilerLinkerOptions.props"));
 
+            // let data extractors know we're about to start
+            dataExtractors.ForEach(e => e.BeforeBuildStarted());
+
+            // this represents our build
             BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { target }, null);
 
-            // will hang until compilation completes
+            // this call is synchronous, so it will stop here until it ends
             BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, data);
 
+            // process the result
             switch(result.OverallResult)
             {
                 case BuildResultCode.Success:
@@ -116,10 +112,12 @@ namespace Model
                     break;
             }
 
+            dataExtractors.ForEach(e => e.AfterBuildFinished());
+
             Status = CompilationStatus.Completed;
         }
 
-        public List<BuildEventArgs> GetBuildEvents()
+        /*public List<BuildEventArgs> GetBuildEvents()
         {
             if(Status == CompilationStatus.Completed)
             {
@@ -127,6 +125,6 @@ namespace Model
             }
 
             return null;
-        }
+        }*/
     }
 }
