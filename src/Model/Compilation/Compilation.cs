@@ -43,32 +43,15 @@ namespace Model
             }
         }
 
-        /*public bool IsReady
-        {
-            get
-            {
-                return m_status != CompilationStatus.InProgress;
-            }
-        }
-
-        public int NodeCount
-        {
-            get;
-            private set;
-        }*/
-
         private Solution m_solution;
         private CompilationStatus m_status;
         private CompilationResult m_result;
-
-        private BuildEventsRecordLogger m_buildEventsRecordLogger;
 
         public Compilation(Solution solution)
         {
             Status = CompilationStatus.NotStarted;
             Result = CompilationResult.None;
             m_solution = solution;
-            //m_buildEventsRecordLogger = new BuildEventsRecordLogger();
         }
 
         public void Start(string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
@@ -116,15 +99,5 @@ namespace Model
 
             Status = CompilationStatus.Completed;
         }
-
-        /*public List<BuildEventArgs> GetBuildEvents()
-        {
-            if(Status == CompilationStatus.Completed)
-            {
-                return m_buildEventsRecordLogger.BuildEvents;
-            }
-
-            return null;
-        }*/
     }
 }

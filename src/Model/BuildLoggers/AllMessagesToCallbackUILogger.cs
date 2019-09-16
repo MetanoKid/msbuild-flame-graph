@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    // callback to execute with the intermediate UI message data
+    public delegate void OnBuildMessage(BuildMessage message);
+
     public class AllMessagesToCallbackUILogger : AllMessagesToCallbackLogger<OnBuildMessage>
     {
         public AllMessagesToCallbackUILogger(OnBuildMessage onBuildEvent) : base(onBuildEvent)
@@ -15,6 +18,7 @@ namespace Model
 
         protected override void OnAnyMessage(object sender, BuildEventArgs e)
         {
+            // data that's being shown in the UI
             BuildMessage message = new BuildMessage()
             {
                 Type = e.GetType().Name,

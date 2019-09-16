@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    // callback to execute with the raw BuildEventData message
     public delegate void OnBuildEventRawCallback(BuildEventArgs e);
 
     public class AllMessagesToCallbackRawLogger : AllMessagesToCallbackLogger<OnBuildEventRawCallback>

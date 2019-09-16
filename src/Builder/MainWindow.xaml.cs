@@ -64,12 +64,15 @@ namespace Builder
             m_viewModel.BuildMessages.Clear();
 
             List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+
+            // extractor that redirects messages to UI
             dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(OnBuildMessage));
 
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
             if(dialog.ShowDialog() == true)
             {
+                // extractor that dumps messages to a JSON file
                 dataExtractors.Add(new Model.DumpToJSONFileDataExtractor(dialog.FileName));
 
                 Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
@@ -83,7 +86,7 @@ namespace Builder
 
         }
 
-        private void OnClickSaveBuildTimeline(object sender, RoutedEventArgs e)
+        /*private void OnClickSaveBuildTimeline(object sender, RoutedEventArgs e)
         {
             // ensure compilation is completed before allowing clicking on this button!
 
@@ -99,6 +102,6 @@ namespace Builder
             {
                 File.WriteAllText(dialog.FileName, text);
             }
-        }
+        }*/
     }
 }

@@ -7,8 +7,6 @@ using System.Collections.ObjectModel;
 
 namespace Model
 {
-    public delegate void OnBuildMessage(BuildMessage message);
-
     public class SolutionCompiler : PropertyChangeNotifier
     {
         public Compilation CurrentCompilation
