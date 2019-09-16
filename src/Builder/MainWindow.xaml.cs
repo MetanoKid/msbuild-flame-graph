@@ -91,7 +91,7 @@ namespace Builder
             // ensure compilation is completed before allowing clicking on this button!
 
             Model.BuildTimelineBuilder builder = new Model.BuildTimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
-            Model.BuildTimeline timeline = builder.Process();
+            Model.Timeline timeline = builder.Process();
             Debug.Assert(timeline.IsCompleted);
 
             string text = Model.ChromeTracingSerializer.Serialize(timeline);

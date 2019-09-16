@@ -53,11 +53,12 @@
     <Compile Include="BuildLoggers\AllMessagesToCallbackRawLogger.cs" />
     <Compile Include="BuildLoggers\AllMessagesToCallbackUILogger.cs" />
     <Compile Include="BuildLoggers\AllMessagesToFileLogger.cs" />
-    <Compile Include="BuildLoggers\BuildEventsRecordLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
-    <Compile Include="BuildTimeline\BuildTimeline.cs" />
-    <Compile Include="BuildTimeline\BuildTimelineBuilder.cs" />
-    <Compile Include="BuildTimeline\BuildTimelineEntry.cs" />
+    <Compile Include="BuildTimeline\Timeline.cs" />
+    <Compile Include="BuildTimeline\TimelineBuilder.cs" />
+    <Compile Include="BuildTimeline\TimelineEntry.cs" />
+    <Compile Include="BuildTimeline\Events\Event.cs" />
+    <Compile Include="BuildTimeline\Events\EventContext.cs" />
     <Compile Include="BuildTimeline\FileCompilation.cs" />
     <Compile Include="BuildTimeline\ParallelFileCompilation.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingEvent.cs" />
@@ -83,6 +84,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

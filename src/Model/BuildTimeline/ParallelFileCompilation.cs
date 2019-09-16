@@ -9,7 +9,7 @@ namespace Model
 {
     public class ParallelFileCompilation
     {
-        public BuildTimelineEntry Parent
+        public BuildTimeline.TimelineEntry Parent
         {
             get;
             private set;
@@ -31,7 +31,7 @@ namespace Model
 
         private List<FileCompilation> m_unfinishedCompilations;
 
-        public ParallelFileCompilation(BuildTimelineEntry entry)
+        public ParallelFileCompilation(BuildTimeline.TimelineEntry entry)
         {
             Parent = entry;
             m_unfinishedCompilations = new List<FileCompilation>();

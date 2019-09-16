@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace Model
+namespace Model.BuildTimeline
 {
-    using PerNodeThreadRootList = Dictionary<Tuple<int, int>, List<BuildTimelineEntry>>;
+    using PerNodeThreadRootList = Dictionary<Tuple<int, int>, List<BuildTimeline.TimelineEntry>>;
 
-    public class BuildTimeline
+    public class Timeline
     {
         private static Regex s_CompileFileStart = new Regex(@"^[^\s]+\.(cpp|cc|c)$");
         private static Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+(c1\.dll|c1xx\.dll)\).+\[(.+)\]$");
         private static Regex s_CompileBackEndFinish = new Regex(@"^time\(.+c2.dll\).+\[(.+)\]$");
 
-        public List<List<BuildTimelineEntry>> PerNodeRootEntries
+        public List<List<BuildTimeline.TimelineEntry>> PerNodeRootEntries
         {
             get;
             private set;
@@ -40,27 +40,27 @@ namespace Model
             }
         }
 
-        private List<BuildTimelineEntry> m_unfinishedProjects;
-        private List<BuildTimelineEntry> m_unfinishedTargets;
-        private List<BuildTimelineEntry> m_unfinishedTasks;
+        private List<BuildTimeline.TimelineEntry> m_unfinishedProjects;
+        private List<BuildTimeline.TimelineEntry> m_unfinishedTargets;
+        private List<BuildTimeline.TimelineEntry> m_unfinishedTasks;
 
         private List<ParallelFileCompilation> m_unfinishedParallelFileCompilations;
 
-        public BuildTimeline(int totalNodeCount)
+        public Timeline(int totalNodeCount)
         {
-            PerNodeRootEntries = new List<List<BuildTimelineEntry>>();
+            PerNodeRootEntries = new List<List<BuildTimeline.TimelineEntry>>();
             
             // node 0 to be used by top-level build element only
             for(int i = 0; i < totalNodeCount + 1; ++i)
             {
-                PerNodeRootEntries.Add(new List<BuildTimelineEntry>());
+                PerNodeRootEntries.Add(new List<BuildTimeline.TimelineEntry>());
             }
 
             ParallelFileCompilations = new List<ParallelFileCompilation>();
 
-            m_unfinishedProjects = new List<BuildTimelineEntry>();
-            m_unfinishedTargets = new List<BuildTimelineEntry>();
-            m_unfinishedTasks = new List<BuildTimelineEntry>();
+            m_unfinishedProjects = new List<BuildTimeline.TimelineEntry>();
+            m_unfinishedTargets = new List<BuildTimeline.TimelineEntry>();
+            m_unfinishedTasks = new List<BuildTimeline.TimelineEntry>();
 
             m_unfinishedParallelFileCompilations = new List<ParallelFileCompilation>();
         }
@@ -69,7 +69,7 @@ namespace Model
 
         public void ProcessBuildStartEvent(BuildStartedEventArgs e)
         {
-            BuildTimelineEntry entry = new BuildTimelineEntry()
+            BuildTimeline.TimelineEntry entry = new BuildTimeline.TimelineEntry()
             {
                 StartBuildEvent = e
             };
@@ -82,7 +82,7 @@ namespace Model
         {
             Debug.Assert(PerNodeRootEntries[0].Count == 1);
 
-            BuildTimelineEntry entry = PerNodeRootEntries[0][0];
+            BuildTimeline.TimelineEntry entry = PerNodeRootEntries[0][0];
             entry.EndBuildEvent = e;
         }
 
@@ -90,22 +90,22 @@ namespace Model
 
         public void ProcessProjectStartEvent(ProjectStartedEventArgs e)
         {
-            BuildTimelineEntry projectEntry = new BuildTimelineEntry()
+            BuildTimeline.TimelineEntry projectEntry = new BuildTimeline.TimelineEntry()
             {
                 StartBuildEvent = e
             };
 
-            if(e.ParentProjectBuildEventContext.ProjectInstanceId == BuildEventContext.InvalidProjectInstanceId ||
+            if(e.ParentProjectBuildEventContext.ProjectInstanceId == Microsoft.Build.Framework.BuildEventContext.InvalidProjectInstanceId ||
                e.ParentProjectBuildEventContext.NodeId != e.BuildEventContext.NodeId)
             {
                 PerNodeRootEntries[e.BuildEventContext.NodeId].Add(projectEntry);
             }
             else
             {
-                Debug.Assert(e.ParentProjectBuildEventContext.TaskId == BuildEventContext.InvalidTaskId);
-                Debug.Assert(e.ParentProjectBuildEventContext.TargetId == BuildEventContext.InvalidTargetId);
+                Debug.Assert(e.ParentProjectBuildEventContext.TaskId == Microsoft.Build.Framework.BuildEventContext.InvalidTaskId);
+                Debug.Assert(e.ParentProjectBuildEventContext.TargetId == Microsoft.Build.Framework.BuildEventContext.InvalidTargetId);
 
-                BuildTimelineEntry parent = m_unfinishedTasks.Find(entry =>
+                BuildTimeline.TimelineEntry parent = m_unfinishedTasks.Find(entry =>
                 {
                     return entry.StartBuildEvent.BuildEventContext.ProjectContextId == e.ParentProjectBuildEventContext.ProjectContextId &&
                            entry.StartBuildEvent.BuildEventContext.ProjectInstanceId == e.ParentProjectBuildEventContext.ProjectInstanceId;
@@ -133,12 +133,12 @@ namespace Model
 
         public void ProcessTargetStartEvent(TargetStartedEventArgs e)
         {
-            BuildTimelineEntry targetEntry = new BuildTimelineEntry()
+            BuildTimeline.TimelineEntry targetEntry = new BuildTimeline.TimelineEntry()
             {
                 StartBuildEvent = e
             };
 
-            BuildTimelineEntry projectEntry = m_unfinishedProjects.Find(p => {
+            BuildTimeline.TimelineEntry projectEntry = m_unfinishedProjects.Find(p => {
                 return p.StartBuildEvent.BuildEventContext.ProjectContextId == e.BuildEventContext.ProjectContextId &&
                        p.StartBuildEvent.BuildEventContext.ProjectInstanceId == e.BuildEventContext.ProjectInstanceId;
             });
@@ -163,12 +163,12 @@ namespace Model
 
         public void ProcessTaskStartEvent(TaskStartedEventArgs e)
         {
-            BuildTimelineEntry taskEntry = new BuildTimelineEntry()
+            BuildTimeline.TimelineEntry taskEntry = new BuildTimeline.TimelineEntry()
             {
                 StartBuildEvent = e
             };
 
-            BuildTimelineEntry targetEntry = m_unfinishedTargets.Find(t => {
+            BuildTimeline.TimelineEntry targetEntry = m_unfinishedTargets.Find(t => {
                 return t.StartBuildEvent.BuildEventContext.ProjectContextId == e.BuildEventContext.ProjectContextId &&
                        t.StartBuildEvent.BuildEventContext.ProjectInstanceId == e.BuildEventContext.ProjectInstanceId &&
                        t.StartBuildEvent.BuildEventContext.TargetId == e.BuildEventContext.TargetId;
@@ -193,7 +193,7 @@ namespace Model
             });
             Debug.Assert(index != -1);
 
-            BuildTimelineEntry taskEntry = m_unfinishedTasks[index];
+            BuildTimeline.TimelineEntry taskEntry = m_unfinishedTasks[index];
             taskEntry.EndBuildEvent = e;
             m_unfinishedTasks.RemoveAt(index);
 
@@ -215,9 +215,9 @@ namespace Model
 
         public void ProcessMessageEvent(BuildMessageEventArgs e)
         {
-            BuildTimelineEntry parent = null;
+            BuildTimeline.TimelineEntry parent = null;
 
-            if(e.BuildEventContext.NodeId == BuildEventContext.InvalidNodeId)
+            if(e.BuildEventContext.NodeId == Microsoft.Build.Framework.BuildEventContext.InvalidNodeId)
             {
                 parent = PerNodeRootEntries[0][0];
             }
@@ -298,11 +298,11 @@ namespace Model
             }
         }
 
-        private void CalculateParallelExecutionsForHierarchy(BuildTimelineEntry entry, PerNodeThreadRootList threadRootEntries)
+        private void CalculateParallelExecutionsForHierarchy(BuildTimeline.TimelineEntry entry, PerNodeThreadRootList threadRootEntries)
         {
             if(entry.Parent != null)
             {
-                List<BuildTimelineEntry> overlappingSiblings = new List<BuildTimelineEntry>();
+                List<BuildTimeline.TimelineEntry> overlappingSiblings = new List<BuildTimeline.TimelineEntry>();
 
                 // take all overlapping siblings
                 foreach(var sibling in entry.Parent.Children)
@@ -341,11 +341,11 @@ namespace Model
             {
                 Tuple<int, int> key = new Tuple<int, int>(entry.StartBuildEvent.BuildEventContext.NodeId, entry.ThreadAffinity.ThreadId);
 
-                List<BuildTimelineEntry> rootEntriesInThreadId = null;
+                List<BuildTimeline.TimelineEntry> rootEntriesInThreadId = null;
                 threadRootEntries.TryGetValue(key, out rootEntriesInThreadId);
                 if (rootEntriesInThreadId == null)
                 {
-                    rootEntriesInThreadId = new List<BuildTimelineEntry>();
+                    rootEntriesInThreadId = new List<BuildTimeline.TimelineEntry>();
                 }
 
                 // look for overlaps

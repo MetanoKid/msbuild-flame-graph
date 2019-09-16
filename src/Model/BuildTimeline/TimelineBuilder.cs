@@ -5,25 +5,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Model
+namespace Model.BuildTimeline
 {
-    public class BuildTimelineBuilder
+    public class TimelineBuilder
     {
         private Compilation m_compilation;
 
-        public BuildTimelineBuilder(Compilation compilation)
+        public TimelineBuilder(Compilation compilation)
         {
             m_compilation = compilation;
         }
 
-        public BuildTimeline Process()
+        public Timeline Process()
         {
             if(m_compilation.Status != CompilationStatus.Completed)
             {
                 return null;
             }
 
-            BuildTimeline timeline = new BuildTimeline(0/*m_compilation.NodeCount*/);
+            Timeline timeline = new Timeline(0/*m_compilation.NodeCount*/);
             List<BuildEventArgs> messages = new List<BuildEventArgs>();
             foreach(BuildEventArgs e in messages/*m_compilation.GetBuildEvents()*/)
             {
