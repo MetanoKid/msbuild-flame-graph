@@ -11,7 +11,7 @@ namespace Model.BuildTimeline
         // the ID of this context
         public int ContextId { get; set; }
 
-        // the ID of the node where this context was created
+        // the ID of the node where this context lives in
         public int NodeId { get; set; }
     }
 }
