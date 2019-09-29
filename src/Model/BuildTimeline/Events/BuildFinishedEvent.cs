@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    class BuildFinishedEvent : Event
+    public class BuildFinishedEvent : Event
     {
         // whether the build finished successfully
         public bool Succeeded { get; set; }

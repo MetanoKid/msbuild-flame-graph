@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    public class TimelineEntry
+    public class DeprecatedTimelineEntry
     {
         public BuildEventArgs StartBuildEvent
         {
@@ -35,13 +35,13 @@ namespace Model.BuildTimeline
             set;
         }
 
-        public TimelineEntry Parent
+        public DeprecatedTimelineEntry Parent
         {
             get;
             private set;
         }
 
-        public List<TimelineEntry> Children
+        public List<DeprecatedTimelineEntry> Children
         {
             get;
             private set;
@@ -53,20 +53,20 @@ namespace Model.BuildTimeline
             private set;
         }
 
-        public TimelineEntry()
+        public DeprecatedTimelineEntry()
         {
             ThreadAffinity = new ThreadAffinity();
-            Children = new List<TimelineEntry>();
+            Children = new List<DeprecatedTimelineEntry>();
             Messages = new List<BuildMessageEventArgs>();
         }
 
-        public void AddChild(TimelineEntry entry)
+        public void AddChild(DeprecatedTimelineEntry entry)
         {
             Children.Add(entry);
             entry.Parent = this;
         }
 
-        public bool OverlapsWith(TimelineEntry entry)
+        public bool OverlapsWith(DeprecatedTimelineEntry entry)
         {
             return StartBuildEvent.Timestamp < entry.EndBuildEvent.Timestamp &&
                    entry.StartBuildEvent.Timestamp < EndBuildEvent.Timestamp;

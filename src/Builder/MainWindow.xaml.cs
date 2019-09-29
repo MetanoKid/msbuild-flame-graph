@@ -123,23 +123,22 @@ namespace Builder
                 // asynchronously build the solution
                 Task.Run(() => {
                     m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
-                                                                  m_viewModel.BuildConfiguration,
-                                                                  m_viewModel.BuildPlatform,
-                                                                  m_viewModel.BuildTarget,
-                                                                  Environment.ProcessorCount,
-                                                                  Environment.ProcessorCount,
-                                                                  dataExtractors);
+                                                       m_viewModel.BuildConfiguration,
+                                                       m_viewModel.BuildPlatform,
+                                                       m_viewModel.BuildTarget,
+                                                       Environment.ProcessorCount,
+                                                       Environment.ProcessorCount,
+                                                       dataExtractors);
 
                     Debug.Assert(eventsExtractor.IsFinished);
 
                     // build a hierarchical timeline of the events
-                    Model.BuildTimeline.TimelineBuilder builder = new Model.BuildTimeline.TimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
-                    Model.BuildTimeline.Timeline timeline = builder.Process();
-                    Debug.Assert(timeline.IsCompleted);
+                    Model.BuildTimeline.TimelineBuilder builder = new Model.BuildTimeline.TimelineBuilder(eventsExtractor.BuildData);
+                    Model.BuildTimeline.Timeline timeline = builder.Build();
 
                     // dump it to file
-                    string text = Model.ChromeTracingSerializer.Serialize(timeline);
-                    File.WriteAllText(dialog.FileName, text);
+                    //string text = Model.ChromeTracingSerializer.Serialize(timeline);
+                    //File.WriteAllText(dialog.FileName, text);
                 });
             }
         }

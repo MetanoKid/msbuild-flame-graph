@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    class ProjectStartedEvent : Event
+    public class ProjectStartedEvent : Event
     {
         // context of the parent project that started this project, if any
         public EventContext ParentProjectEventContext { get; set; }

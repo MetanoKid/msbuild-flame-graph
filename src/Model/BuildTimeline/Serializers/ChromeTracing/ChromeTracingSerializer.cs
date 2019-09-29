@@ -49,7 +49,7 @@ namespace Model
         private static string s_CompilerFrontendColor = "grey";
         private static string s_CompilerBackendColor = "grey";
 
-        public static string Serialize(BuildTimeline.Timeline timeline)
+        public static string Serialize(BuildTimeline.DeprecatedTimeline timeline)
         {
             // build timeline
             ChromeTrace trace = BuildTrace(timeline);
@@ -60,7 +60,7 @@ namespace Model
             return serializer.Serialize(trace);
         }
 
-        private static ChromeTrace BuildTrace(BuildTimeline.Timeline timeline)
+        private static ChromeTrace BuildTrace(BuildTimeline.DeprecatedTimeline timeline)
         {
             Debug.Assert(timeline.PerNodeRootEntries.Count > 0 && timeline.PerNodeRootEntries[0].Count == 1);
             DateTime buildStartTimestamp = timeline.PerNodeRootEntries[0][0].StartBuildEvent.Timestamp;
@@ -90,7 +90,7 @@ namespace Model
             return trace;
         }
 
-        private static void ExtractEventsIntoTrace(BuildTimeline.TimelineEntry entry, DateTime startTimestamp, List<ChromeTracingEvent> events)
+        private static void ExtractEventsIntoTrace(BuildTimeline.DeprecatedTimelineEntry entry, DateTime startTimestamp, List<ChromeTracingEvent> events)
         {
             if(entry.ElapsedTime == TimeSpan.Zero)
             {
@@ -108,7 +108,7 @@ namespace Model
             });
 
             // child events
-            foreach(BuildTimeline.TimelineEntry child in entry.Children)
+            foreach(BuildTimeline.DeprecatedTimelineEntry child in entry.Children)
             {
                 ExtractEventsIntoTrace(child, startTimestamp, events);
             }
@@ -245,7 +245,7 @@ namespace Model
             }
         }
 
-        private static void ExtractProcessNamesIntoTrace(BuildTimeline.Timeline timeline, List<ChromeTracingEvent> events)
+        private static void ExtractProcessNamesIntoTrace(BuildTimeline.DeprecatedTimeline timeline, List<ChromeTracingEvent> events)
         {
             // node 0 is special: not tied to a node but the build itself
             events.Add(new ChromeTracingEvent()
@@ -273,7 +273,7 @@ namespace Model
             }
         }
 
-        private static void ExtractRegisteredTIDsFromEntry(BuildTimeline.TimelineEntry entry, HashSet<Tuple<int, int, int>> registeredTIDs)
+        private static void ExtractRegisteredTIDsFromEntry(BuildTimeline.DeprecatedTimelineEntry entry, HashSet<Tuple<int, int, int>> registeredTIDs)
         {
             registeredTIDs.Add(new Tuple<int, int, int>(
                 entry.StartBuildEvent.BuildEventContext != null ? entry.StartBuildEvent.BuildEventContext.NodeId : 0,
@@ -287,7 +287,7 @@ namespace Model
             }
         }
 
-        private static void ExtractThreadNamesIntoTrace(BuildTimeline.Timeline timeline, List<ChromeTracingEvent> events)
+        private static void ExtractThreadNamesIntoTrace(BuildTimeline.DeprecatedTimeline timeline, List<ChromeTracingEvent> events)
         {
             HashSet<Tuple<int, int, int>> registeredTIDs = new HashSet<Tuple<int, int, int>>();
             

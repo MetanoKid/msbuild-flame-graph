@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    class BuildStartedEvent : Event
+    public class BuildStartedEvent : Event
     {
     }
 }

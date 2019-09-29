@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    class MessageEvent : Event
+    public class MessageEvent : Event
     {
         // code associated with the event
         public string Code { get; set; }

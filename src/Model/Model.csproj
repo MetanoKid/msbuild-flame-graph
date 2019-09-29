@@ -70,9 +70,10 @@
     <Compile Include="BuildTimeline\Events\TargetStartedEvent.cs" />
     <Compile Include="BuildTimeline\Events\TaskFinishedEvent.cs" />
     <Compile Include="BuildTimeline\Events\TaskStartedEvent.cs" />
+    <Compile Include="BuildTimeline\DeprecatedTimeline.cs" />
     <Compile Include="BuildTimeline\Timeline.cs" />
     <Compile Include="BuildTimeline\TimelineBuilder.cs" />
-    <Compile Include="BuildTimeline\TimelineEntry.cs" />
+    <Compile Include="BuildTimeline\DeprecatedTimelineEntry.cs" />
     <Compile Include="BuildTimeline\Events\Event.cs" />
     <Compile Include="BuildTimeline\Events\Context\EventContext.cs" />
     <Compile Include="BuildTimeline\FileCompilation.cs" />

@@ -26,17 +26,26 @@ namespace Model.BuildTimeline
         public Entry Parent { get; set; }
 
         // child entries, if any
-        public List<Entry> Children { get; private set; }
+        public List<Entry> ChildEntries { get; private set; }
+
+        // child events (including those grouped within the child entries, but not the start/end from this entry), if any
+        public List<Event> ChildEvents { get; private set; }
 
         public Entry()
         {
-            Children = new List<Entry>();
+            ChildEntries = new List<Entry>();
+            ChildEvents = new List<Event>();
         }
 
         public void AddChild(Entry entry)
         {
-            Children.Add(entry);
+            ChildEntries.Add(entry);
             entry.Parent = this;
+        }
+
+        public void AddChild(Event e)
+        {
+            ChildEvents.Add(e);
         }
 
         public bool OverlapsWith(Entry entry)

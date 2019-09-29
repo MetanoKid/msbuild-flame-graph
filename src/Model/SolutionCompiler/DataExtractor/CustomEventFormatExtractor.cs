@@ -47,8 +47,8 @@ namespace Model
         public override void AfterBuildFinished()
         {
             // there can be null values if they aren't handled by the converter
-            IEnumerable<Event> events = m_rawEvents.Select((e) => m_converter.Convert(e))
-                                                   .Where((e) => e != null);
+            IEnumerable<Event> events = m_rawEvents.Select(_ => m_converter.Convert(_))
+                                                   .Where(_ => _ != null);
 
             // collect all elements
             m_buildData.Events = events.ToList();

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    class TargetStartedEvent : Event
+    public class TargetStartedEvent : Event
     {
         // name of the target that caused this one to build, if any
         public string ParentTarget { get; set; }

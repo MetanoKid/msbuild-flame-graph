@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
-    class TaskStartedEvent : Event
+    public class TaskStartedEvent : Event
     {
         // path to the file that contains the project data
         public string ProjectFile { get; set; }
