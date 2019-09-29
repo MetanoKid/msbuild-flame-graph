@@ -87,7 +87,7 @@
     <Compile Include="PropertyChangeNotifier\PropertyChangeNotifier.cs" />
     <Compile Include="SolutionCompiler\DataExtractor\CallbackPerMessageDataExtractor.cs" />
     <Compile Include="SolutionCompiler\DataExtractor\CompilationDataExtractor.cs" />
-    <Compile Include="SolutionCompiler\DataExtractor\DumpToJSONFileDataExtractor.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\CustomEventFormatExtractor.cs" />
     <Compile Include="SolutionCompiler\SolutionCompiler.cs" />
     <Compile Include="Solution\Solution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

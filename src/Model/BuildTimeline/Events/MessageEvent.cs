@@ -20,10 +20,16 @@ namespace Model.BuildTimeline
         // the custom sub-type of the event (as reported by MSBuild)
         public string Subcategory { get; set; }
 
-        // start and end lines where the message points to, if any
-        public Tuple<int, int> Line { get; set; }
+        // start line where the message points to, if any
+        public int LineStart { get; set; }
 
-        // start and end columns where the message points to, if any
-        public Tuple<int, int> Column { get; set; }
+        // end line where the message points to, if any
+        public int LineEnd { get; set; }
+
+        // start column where the message points to, if any
+        public int ColumnStart { get; set; }
+
+        // end column where the message points to, if any
+        public int ColumnEnd { get; set; }
     }
 }

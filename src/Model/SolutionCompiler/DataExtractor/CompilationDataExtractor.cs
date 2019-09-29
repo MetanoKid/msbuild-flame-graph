@@ -9,18 +9,25 @@ namespace Model
 {
     public abstract class CompilationDataExtractor
     {
-        public Logger Logger
+        // which Logger instance is used to perform the extraction
+        public Logger Logger { get; protected set; }
+
+        // whether the extraction has finished
+        public bool IsFinished { get; private set; }
+
+        public CompilationDataExtractor()
         {
-            get;
-            protected set;
+            IsFinished = false;
         }
 
         public virtual void BeforeBuildStarted()
         {
+            IsFinished = false;
         }
 
         public virtual void AfterBuildFinished()
         {
+            IsFinished = true;
         }
     }
 }

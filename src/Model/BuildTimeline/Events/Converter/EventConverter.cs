@@ -270,8 +270,10 @@ namespace Model.BuildTimeline
                 ProjectFile = e.ProjectFile,
                 File = e.File,
                 Subcategory = e.Subcategory,
-                Line = new Tuple<int, int>(e.LineNumber, e.EndLineNumber),
-                Column = new Tuple<int, int>(e.ColumnNumber, e.EndColumnNumber),
+                LineStart = e.LineNumber,
+                LineEnd = e.EndLineNumber,
+                ColumnStart = e.ColumnNumber,
+                ColumnEnd = e.EndColumnNumber,
             };
         }
     }

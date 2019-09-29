@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Diagnostics;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace Builder
 {
@@ -59,49 +60,88 @@ namespace Builder
             }
         }
 
-        private void OnClickBuildSolution(object sender, RoutedEventArgs e)
+        private void OnClickBuildSolutionSaveEvents(object sender, RoutedEventArgs e)
         {
-            m_viewModel.BuildMessages.Clear();
-
-            List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
-
-            // extractor that redirects messages to UI
-            dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(OnBuildMessage));
-
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
             if(dialog.ShowDialog() == true)
             {
-                // extractor that dumps messages to a JSON file
-                dataExtractors.Add(new Model.DumpToJSONFileDataExtractor(dialog.FileName));
+                m_viewModel.BuildMessages.Clear();
 
-                Task.Run(() => m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
-                                                                  m_viewModel.BuildConfiguration, 
+                List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+                
+                // extractor that redirects messages to UI
+                dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(OnBuildMessage));
+
+                // extractor that accumulates all raw messages then converts them into a custom representation
+                Model.CustomEventFormatExtractor eventsExtractor = new Model.CustomEventFormatExtractor();
+                dataExtractors.Add(eventsExtractor);
+
+                // asynchronously build the solution
+                Task.Run(() => {
+                    m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
+                                                                  m_viewModel.BuildConfiguration,
                                                                   m_viewModel.BuildPlatform,
                                                                   m_viewModel.BuildTarget,
                                                                   Environment.ProcessorCount,
                                                                   Environment.ProcessorCount,
-                                                                  dataExtractors));
-            }
+                                                                  dataExtractors);
 
+                    Debug.Assert(eventsExtractor.IsFinished);
+
+                    // dump custom data to the requested JSON file
+                    string json = JsonConvert.SerializeObject(eventsExtractor.BuildData,
+                        Formatting.Indented,
+                        new JsonSerializerSettings()
+                        {
+                            NullValueHandling = NullValueHandling.Ignore,
+                            TypeNameHandling = TypeNameHandling.Auto,
+                        });
+
+                    File.WriteAllText(dialog.FileName, json);
+                });
+            }
         }
 
-        /*private void OnClickSaveBuildTimeline(object sender, RoutedEventArgs e)
+        private void OnClickBuildSolutionSaveTimeline(object sender, RoutedEventArgs e)
         {
-            // ensure compilation is completed before allowing clicking on this button!
-
-            Model.BuildTimelineBuilder builder = new Model.BuildTimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
-            Model.Timeline timeline = builder.Process();
-            Debug.Assert(timeline.IsCompleted);
-
-            string text = Model.ChromeTracingSerializer.Serialize(timeline);
             SaveFileDialog dialog = new SaveFileDialog();
-            dialog.Filter = "JSON files (*.json)|*.json";
-
-            if(dialog.ShowDialog() == true)
+            dialog.Filter = "JSON file (*.json)|*.json";
+            if (dialog.ShowDialog() == true)
             {
-                File.WriteAllText(dialog.FileName, text);
+                m_viewModel.BuildMessages.Clear();
+
+                List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+
+                // extractor that redirects messages to UI
+                dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(OnBuildMessage));
+
+                // extractor that accumulates all raw messages then converts them into a custom representation
+                Model.CustomEventFormatExtractor eventsExtractor = new Model.CustomEventFormatExtractor();
+                dataExtractors.Add(eventsExtractor);
+
+                // asynchronously build the solution
+                Task.Run(() => {
+                    m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
+                                                                  m_viewModel.BuildConfiguration,
+                                                                  m_viewModel.BuildPlatform,
+                                                                  m_viewModel.BuildTarget,
+                                                                  Environment.ProcessorCount,
+                                                                  Environment.ProcessorCount,
+                                                                  dataExtractors);
+
+                    Debug.Assert(eventsExtractor.IsFinished);
+
+                    // build a hierarchical timeline of the events
+                    Model.BuildTimeline.TimelineBuilder builder = new Model.BuildTimeline.TimelineBuilder(m_viewModel.SolutionCompiler.CurrentCompilation);
+                    Model.BuildTimeline.Timeline timeline = builder.Process();
+                    Debug.Assert(timeline.IsCompleted);
+
+                    // dump it to file
+                    string text = Model.ChromeTracingSerializer.Serialize(timeline);
+                    File.WriteAllText(dialog.FileName, text);
+                });
             }
-        }*/
+        }
     }
 }

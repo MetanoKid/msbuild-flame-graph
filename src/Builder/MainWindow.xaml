@@ -50,10 +50,17 @@
                          Padding="2"
                          Text="{Binding BuildTarget}" VerticalAlignment="Center"></TextBox>
             </StackPanel>
-            <Button Content="Build solution"
-                    HorizontalAlignment="Center"
-                    Padding="10,3"
-                    Click="OnClickBuildSolution"/>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Build solution, save events"
+                        HorizontalAlignment="Center"
+                        Padding="10,3"
+                        Click="OnClickBuildSolutionSaveEvents"
+                        Margin="0,0,5,0"/>
+                <Button Content="Build solution, save timeline"
+                        HorizontalAlignment="Center"
+                        Padding="10,3"
+                        Click="OnClickBuildSolutionSaveTimeline"/>
+            </StackPanel>
         </StackPanel>
         <ListView Name="BuildMessageList"
                   ItemsSource="{Binding BuildMessages}">
