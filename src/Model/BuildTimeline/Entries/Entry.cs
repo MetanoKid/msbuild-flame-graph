@@ -4,13 +4,22 @@ using System.Diagnostics;
 
 namespace Model.BuildTimeline
 {
-    class Entry
+    public class Entry
     {
         // the event that started this entry
-        public Event StartEvent { get; set; }
+        public Event StartEvent { get; }
 
         // the event that ended this entry
-        public Event EndEvent { get; set; }
+        public Event EndEvent { get; private set; }
+
+        // the context for both start and end events
+        public EventContext Context
+        {
+            get
+            {
+                return StartEvent?.Context;
+            }
+        }
 
         // time elapsed between start and end events
         public TimeSpan ElapsedTime
@@ -31,10 +40,17 @@ namespace Model.BuildTimeline
         // child events (including those grouped within the child entries, but not the start/end from this entry), if any
         public List<Event> ChildEvents { get; private set; }
 
-        public Entry()
+        public Entry(Event startEvent)
         {
             ChildEntries = new List<Entry>();
             ChildEvents = new List<Event>();
+
+            StartEvent = startEvent;
+        }
+
+        public void CloseWith(Event endEvent)
+        {
+            EndEvent = endEvent;
         }
 
         public void AddChild(Entry entry)
