@@ -54,7 +54,8 @@
     <Compile Include="BuildLoggers\AllMessagesToCallbackUILogger.cs" />
     <Compile Include="BuildLoggers\AllMessagesToFileLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
-    <Compile Include="BuildTimeline\Entries\Entry.cs" />
+    <Compile Include="BuildTimeline\Entries\BuildEntry.cs" />
+    <Compile Include="BuildTimeline\Entries\TimelineEntry.cs" />
     <Compile Include="BuildTimeline\Events\BuildFinishedEvent.cs" />
     <Compile Include="BuildTimeline\Events\BuildStartedEvent.cs" />
     <Compile Include="BuildTimeline\Events\Context\MessageEventContext.cs" />

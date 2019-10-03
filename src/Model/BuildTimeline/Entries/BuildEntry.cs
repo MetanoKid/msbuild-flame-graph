@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Model.BuildTimeline
 {
-    public class Entry
+    public class BuildEntry
     {
         // the event that started this entry
         public Event StartEvent { get; }
@@ -32,17 +32,17 @@ namespace Model.BuildTimeline
         }
 
         // parent entry, if any
-        public Entry Parent { get; set; }
+        public BuildEntry Parent { get; private set; }
 
         // child entries, if any
-        public List<Entry> ChildEntries { get; private set; }
+        public List<BuildEntry> ChildEntries { get; private set; }
 
         // child events (including those grouped within the child entries, but not the start/end from this entry), if any
         public List<Event> ChildEvents { get; private set; }
 
-        public Entry(Event startEvent)
+        public BuildEntry(Event startEvent)
         {
-            ChildEntries = new List<Entry>();
+            ChildEntries = new List<BuildEntry>();
             ChildEvents = new List<Event>();
 
             StartEvent = startEvent;
@@ -53,7 +53,7 @@ namespace Model.BuildTimeline
             EndEvent = endEvent;
         }
 
-        public void AddChild(Entry entry)
+        public void AddChild(BuildEntry entry)
         {
             ChildEntries.Add(entry);
             entry.Parent = this;
@@ -62,12 +62,6 @@ namespace Model.BuildTimeline
         public void AddChild(Event e)
         {
             ChildEvents.Add(e);
-        }
-
-        public bool OverlapsWith(Entry entry)
-        {
-            return StartEvent.Timestamp < entry.EndEvent.Timestamp &&
-                   entry.StartEvent.Timestamp < EndEvent.Timestamp;
         }
     }
 }

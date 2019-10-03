@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace Model
 {
-    class ChromeTrace
+    public class ChromeTrace
     {
         public List<ChromeTracingEvent> traceEvents = new List<ChromeTracingEvent>();
     }
 
-    class ChromeTracingEvent
+    public class ChromeTracingEvent
     {
         public Nullable<char> ph;
         public Nullable<int> pid;

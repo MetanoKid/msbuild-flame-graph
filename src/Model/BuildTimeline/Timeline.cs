@@ -8,9 +8,29 @@ namespace Model.BuildTimeline
 {
     public class Timeline
     {
+        public List<TimelineEntry>[] PerNodeRootEntries { get; private set; }
+
         public Timeline(int nodeCount)
         {
+            // index 0 will be used for the build only
+            PerNodeRootEntries = new List<TimelineEntry>[nodeCount + 1];
 
+            for(int i = 0; i < PerNodeRootEntries.Length; ++i)
+            {
+                PerNodeRootEntries[i] = new List<TimelineEntry>();
+            }
+        }
+
+        public void AddRoot(TimelineEntry root)
+        {
+            if(root.BuildEntry.Context == null)
+            {
+                PerNodeRootEntries[0].Add(root);
+            }
+            else
+            {
+                PerNodeRootEntries[root.BuildEntry.Context.NodeId].Add(root);
+            }
         }
     }
 }

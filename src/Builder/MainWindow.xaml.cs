@@ -137,8 +137,15 @@ namespace Builder
                     Model.BuildTimeline.Timeline timeline = builder.Build();
 
                     // dump it to file
-                    //string text = Model.ChromeTracingSerializer.Serialize(timeline);
-                    //File.WriteAllText(dialog.FileName, text);
+                    Model.ChromeTrace trace = Model.ChromeTracingSerializer.BuildTrace(timeline);
+                    string json = JsonConvert.SerializeObject(trace,
+                        Formatting.Indented,
+                        new JsonSerializerSettings()
+                        {
+                            NullValueHandling = NullValueHandling.Ignore
+                        });
+
+                    File.WriteAllText(dialog.FileName, json);
                 });
             }
         }
