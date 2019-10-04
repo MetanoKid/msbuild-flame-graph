@@ -28,7 +28,7 @@ namespace Model
             ExtractProcessNamesIntoTrace(timeline, trace.traceEvents);
 
             // dump per thread metadata
-            //ExtractThreadNamesIntoTrace(timeline, trace.traceEvents);
+            ExtractThreadNamesIntoTrace(timeline, trace.traceEvents);
 
             // dump projects, targets and tasks as extracted from the timeline
             foreach(var perNodeRootEntries in timeline.PerNodeRootEntries)
@@ -57,9 +57,13 @@ namespace Model
             {
                 ph = 'B',
                 pid = entry.StartEvent.Context != null ? entry.StartEvent.Context.NodeId : 0,
-                tid = 0,//entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
                 ts = (entry.StartEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
                 name = ExtractTracingNameFrom(entry.StartEvent),
+                args = new Dictionary<string, string>()
+                {
+                    { "Start message", entry.StartEvent.Message },
+                },
             });
 
             // child events
@@ -73,9 +77,13 @@ namespace Model
             {
                 ph = 'E',
                 pid = entry.EndEvent.Context != null ? entry.EndEvent.Context.NodeId : 0,
-                tid = 0,//entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
                 ts = (entry.EndEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
                 name = ExtractTracingNameFrom(entry.StartEvent),
+                args = new Dictionary<string, string>()
+                {
+                    { "End message", entry.EndEvent.Message },
+                },
             });
         }
 
@@ -85,7 +93,8 @@ namespace Model
 
             if (e is BuildStartedEvent)
             {
-                name = "Build";
+                // TODO: display build file, requested configuration, platform and target?
+                name = "Build data";
             }
             else if (e is ProjectStartedEvent)
             {
@@ -99,8 +108,7 @@ namespace Model
             {
                 name = (e as TaskStartedEvent).TaskName;
             }
-
-            Debug.Assert(name != null);
+            
             return name;
         }
 
@@ -227,27 +235,14 @@ namespace Model
             }
         }
 
-        /*private static void ExtractRegisteredTIDsFromEntry(BuildTimeline.DeprecatedTimelineEntry entry, HashSet<Tuple<int, int, int>> registeredTIDs)
+        private static void ExtractThreadNamesIntoTrace(Timeline timeline, List<ChromeTracingEvent> events)
         {
-            registeredTIDs.Add(new Tuple<int, int, int>(
-                entry.StartBuildEvent.BuildEventContext != null ? entry.StartBuildEvent.BuildEventContext.NodeId : 0,
-                entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                entry.ThreadAffinity.ThreadId
-            ));
-
-            foreach(var child in entry.Children)
-            {
-                ExtractRegisteredTIDsFromEntry(child, registeredTIDs);
-            }
-        }*/
-
-        /*private static void ExtractThreadNamesIntoTrace(BuildTimeline.DeprecatedTimeline timeline, List<ChromeTracingEvent> events)
-        {
+            // Tuple<NodeId, ProcessID, ThreadId>
             HashSet<Tuple<int, int, int>> registeredTIDs = new HashSet<Tuple<int, int, int>>();
             
-            foreach(var perNodeRootEntries in timeline.PerNodeRootEntries)
+            foreach(List<TimelineEntry> rootEntries in timeline.PerNodeRootEntries)
             {
-                foreach (var rootEntry in perNodeRootEntries)
+                foreach (TimelineEntry rootEntry in rootEntries)
                 {
                     ExtractRegisteredTIDsFromEntry(rootEntry, registeredTIDs);
                 }
@@ -279,6 +274,20 @@ namespace Model
                     }
                 });
             }
-        }*/
+        }
+
+        private static void ExtractRegisteredTIDsFromEntry(TimelineEntry entry, HashSet<Tuple<int, int, int>> registeredTIDs)
+        {
+            registeredTIDs.Add(new Tuple<int, int, int>(
+                entry.BuildEntry.Context != null ? entry.BuildEntry.Context.NodeId : 0,
+                entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                entry.ThreadAffinity.ThreadId
+            ));
+
+            foreach (TimelineEntry child in entry.ChildEntries)
+            {
+                ExtractRegisteredTIDsFromEntry(child, registeredTIDs);
+            }
+        }
     }
 }

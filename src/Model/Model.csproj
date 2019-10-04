@@ -72,8 +72,9 @@
     <Compile Include="BuildTimeline\Events\TaskFinishedEvent.cs" />
     <Compile Include="BuildTimeline\Events\TaskStartedEvent.cs" />
     <Compile Include="BuildTimeline\DeprecatedTimeline.cs" />
-    <Compile Include="BuildTimeline\Timeline.cs" />
-    <Compile Include="BuildTimeline\TimelineBuilder.cs" />
+    <Compile Include="BuildTimeline\Timeline\ThreadAffinity.cs" />
+    <Compile Include="BuildTimeline\Timeline\Timeline.cs" />
+    <Compile Include="BuildTimeline\Timeline\Builder\TimelineBuilder.cs" />
     <Compile Include="BuildTimeline\DeprecatedTimelineEntry.cs" />
     <Compile Include="BuildTimeline\Events\Event.cs" />
     <Compile Include="BuildTimeline\Events\Context\EventContext.cs" />
@@ -81,7 +82,6 @@
     <Compile Include="BuildTimeline\ParallelFileCompilation.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingEvent.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingSerializer.cs" />
-    <Compile Include="BuildTimeline\ThreadAffinity.cs" />
     <Compile Include="Compilation\Compilation.cs" />
     <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\CompilationStatus.cs" />

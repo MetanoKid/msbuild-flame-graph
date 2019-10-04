@@ -416,11 +416,56 @@ namespace Model.BuildTimeline
         {
             foreach(List<TimelineEntry> rootsInNode in timeline.PerNodeRootEntries)
             {
-                // TODO: iterate over roots, assign different "thread IDs" when they overlap
-                //       be careful when assigning a new "thread ID", it can also overlap!
-                //       children live within the same "thread ID" as their parent, unless
-                //       they overlap with their siblings, when we have to assign a new "thread ID"
-                //       and be careful with overlaps within there
+                foreach(TimelineEntry root in rootsInNode)
+                {
+                    CalculateParallelEntriesFor(root);
+                }
+            }
+        }
+
+        private void CalculateParallelEntriesFor(TimelineEntry entry)
+        {
+            if(entry.Parent != null)
+            {
+                // retrieve all of the overlapping siblings
+                List<TimelineEntry> overlappingSiblings = new List<TimelineEntry>();
+
+                foreach(TimelineEntry sibling in entry.Parent.ChildEntries)
+                {
+                    if(entry != sibling && entry.OverlapsWith(sibling))
+                    {
+                        overlappingSiblings.Add(sibling);
+                    }
+                }
+
+                // we may have calculated some of the siblings, take their information into account
+                foreach(TimelineEntry overlappingSibling in overlappingSiblings)
+                {
+                    if(overlappingSibling.ThreadAffinity.Calculated)
+                    {
+                        entry.ThreadAffinity.AddInvalid(overlappingSibling.ThreadAffinity.ThreadId);
+                    }
+                }
+
+                // now calculate where we think the entry was executed
+                entry.ThreadAffinity.Calculate();
+
+                // TODO: what if we landed in a ThreadId where we also overlap?
+                //       how do we know which root entries have been assigned to each ThreadId?
+                //       pass on a list where only calculated roots get inserted?
+                //       a root is an entry whose ThreadId when we start calculating differs from when we finish?
+
+                // now that we've decided where the entry was executed, transfer this data to child entries
+                foreach(TimelineEntry child in entry.ChildEntries)
+                {
+                    child.ThreadAffinity.InheritDataFrom(entry.ThreadAffinity);
+                }
+            }
+
+            // continue with child entries
+            foreach(TimelineEntry child in entry.ChildEntries)
+            {
+                CalculateParallelEntriesFor(child);
             }
         }
     }

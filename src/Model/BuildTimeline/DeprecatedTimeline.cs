@@ -300,7 +300,7 @@ namespace Model.BuildTimeline
 
         private void CalculateParallelExecutionsForHierarchy(BuildTimeline.DeprecatedTimelineEntry entry, PerNodeThreadRootList threadRootEntries)
         {
-            if(entry.Parent != null)
+            /*if(entry.Parent != null)
             {
                 List<BuildTimeline.DeprecatedTimelineEntry> overlappingSiblings = new List<BuildTimeline.DeprecatedTimelineEntry>();
 
@@ -383,7 +383,7 @@ namespace Model.BuildTimeline
             foreach (var child in entry.Children)
             {
                 CalculateParallelExecutionsForHierarchy(child, threadRootEntries);
-            }
+            }*/
         }
     }
 }
