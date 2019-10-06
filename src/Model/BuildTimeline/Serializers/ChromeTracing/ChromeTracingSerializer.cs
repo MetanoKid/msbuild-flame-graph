@@ -52,7 +52,15 @@ namespace Model
         {
             BuildEntry entry = timelineEntry.BuildEntry;
 
+            if(entry.ElapsedTime == TimeSpan.Zero)
+            {
+                return;
+            }
+
+            Dictionary<string, string> args = new Dictionary<string, string>();
+
             // start event
+            args.Add("Start event", entry.StartEvent.Message);
             events.Add(new ChromeTracingEvent()
             {
                 ph = 'B',
@@ -60,10 +68,6 @@ namespace Model
                 tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
                 ts = (entry.StartEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
                 name = ExtractTracingNameFrom(entry.StartEvent),
-                args = new Dictionary<string, string>()
-                {
-                    { "Start message", entry.StartEvent.Message },
-                },
             });
 
             // child events
@@ -72,7 +76,16 @@ namespace Model
                 ExtractEventsIntoTrace(child, startTimestamp, events);
             }
 
+            // messages during this entry
+            List<Event> messageEvents = timelineEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent).ToList();
+            for(int i = 0; i < messageEvents.Count(); ++i)
+            {
+                double millisecondsSinceStart = (messageEvents[i].Timestamp - startTimestamp).TotalMilliseconds;
+                args.Add($"Message #{i}", $"[{millisecondsSinceStart:0.###} ms] {messageEvents[i].Message}");
+            }
+
             // end event
+            args.Add("End event", entry.EndEvent.Message);
             events.Add(new ChromeTracingEvent()
             {
                 ph = 'E',
@@ -80,10 +93,7 @@ namespace Model
                 tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
                 ts = (entry.EndEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
                 name = ExtractTracingNameFrom(entry.StartEvent),
-                args = new Dictionary<string, string>()
-                {
-                    { "End message", entry.EndEvent.Message },
-                },
+                args = args,
             });
         }
 
