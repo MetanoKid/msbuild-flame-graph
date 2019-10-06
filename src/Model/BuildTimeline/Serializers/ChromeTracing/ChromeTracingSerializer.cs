@@ -52,11 +52,6 @@ namespace Model
         {
             BuildEntry entry = timelineEntry.BuildEntry;
 
-            if(entry.ElapsedTime == TimeSpan.Zero)
-            {
-                return;
-            }
-
             Dictionary<string, string> args = new Dictionary<string, string>();
 
             // start event
