@@ -4,6 +4,9 @@ using System.Diagnostics;
 
 namespace Model.BuildTimeline
 {
+    // alias for the group of root timeline entries per <node id, calculated thread id>
+    using PerNodeThreadRootEntries = Dictionary<Tuple<int, int>, List<TimelineEntry>>;
+
     class TimelineBuilderContext
     {
         public List<BuildEntry> OpenBuildEntries;
@@ -414,19 +417,23 @@ namespace Model.BuildTimeline
         
         private void CalculateParallelEntries(Timeline timeline)
         {
+            PerNodeThreadRootEntries calculatedPerNodeThreadRootEntries = new PerNodeThreadRootEntries();
+
             foreach(List<TimelineEntry> rootsInNode in timeline.PerNodeRootEntries)
             {
                 foreach(TimelineEntry root in rootsInNode)
                 {
-                    CalculateParallelEntriesFor(root);
+                    CalculateParallelEntriesFor(root, calculatedPerNodeThreadRootEntries);
                 }
             }
         }
 
-        private void CalculateParallelEntriesFor(TimelineEntry entry)
+        private void CalculateParallelEntriesFor(TimelineEntry entry, PerNodeThreadRootEntries nodeThreadRootEntries)
         {
             if(entry.Parent != null)
             {
+                Debug.Assert(entry.BuildEntry.Context != null);
+
                 // retrieve all of the overlapping siblings
                 List<TimelineEntry> overlappingSiblings = new List<TimelineEntry>();
 
@@ -447,13 +454,40 @@ namespace Model.BuildTimeline
                     }
                 }
 
+                // also, check the overlapping root entries from each calculated thread within the same node
+                foreach(var pair in nodeThreadRootEntries)
+                {
+                    if(pair.Key.Item1 == entry.BuildEntry.Context.NodeId &&
+                       pair.Key.Item2 != entry.ThreadAffinity.ThreadId)
+                    {
+                        foreach(TimelineEntry root in pair.Value)
+                        {
+                            Debug.Assert(root.ThreadAffinity.Calculated);
+                            if(entry.OverlapsWith(root))
+                            {
+                                entry.ThreadAffinity.AddInvalid(root.ThreadAffinity.ThreadId);
+                            }
+                        }
+                    }
+                }
+
                 // now calculate where we think the entry was executed
                 entry.ThreadAffinity.Calculate();
 
-                // TODO: what if we landed in a ThreadId where we also overlap?
-                //       how do we know which root entries have been assigned to each ThreadId?
-                //       pass on a list where only calculated roots get inserted?
-                //       a root is an entry whose ThreadId when we start calculating differs from when we finish?
+                // are we a new root?
+                if(entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId)
+                {
+                    // get or create root list for the <node id, calculated thread id>
+                    Tuple<int, int> key = new Tuple<int, int>(entry.BuildEntry.Context.NodeId, entry.ThreadAffinity.ThreadId);
+                    List<TimelineEntry> rootsInNodeThread = null;
+                    if(!nodeThreadRootEntries.TryGetValue(key, out rootsInNodeThread))
+                    {
+                        rootsInNodeThread = new List<TimelineEntry>();
+                        nodeThreadRootEntries[key] = rootsInNodeThread;
+                    }
+
+                    rootsInNodeThread.Add(entry);
+                }
 
                 // now that we've decided where the entry was executed, transfer this data to child entries
                 foreach(TimelineEntry child in entry.ChildEntries)
@@ -465,7 +499,7 @@ namespace Model.BuildTimeline
             // continue with child entries
             foreach(TimelineEntry child in entry.ChildEntries)
             {
-                CalculateParallelEntriesFor(child);
+                CalculateParallelEntriesFor(child, nodeThreadRootEntries);
             }
         }
     }
