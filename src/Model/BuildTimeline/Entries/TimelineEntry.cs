@@ -14,12 +14,16 @@ namespace Model.BuildTimeline
         public List<TimelineEntry> ChildEntries { get; private set; }
         public ThreadAffinity ThreadAffinity { get; private set; }
 
+        public Guid GUID { get; }
+
         public TimelineEntry(BuildEntry buildEntry)
         {
             BuildEntry = buildEntry;
             Parent = null;
             ChildEntries = new List<TimelineEntry>();
             ThreadAffinity = new ThreadAffinity();
+
+            GUID = Guid.NewGuid();
         }
 
         public void AddChild(TimelineEntry entry)

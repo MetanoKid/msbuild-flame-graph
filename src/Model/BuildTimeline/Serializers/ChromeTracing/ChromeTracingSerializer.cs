@@ -52,7 +52,20 @@ namespace Model
         {
             BuildEntry entry = timelineEntry.BuildEntry;
 
+            // skip instantaneous entries
+            if(entry.ElapsedTime == TimeSpan.Zero)
+            {
+                return;
+            }
+
             Dictionary<string, string> args = new Dictionary<string, string>();
+
+            // Guid
+            args.Add("GUID", timelineEntry.GUID.ToString());
+            if(timelineEntry.Parent != null)
+            {
+                args.Add("Parent GUID", timelineEntry.Parent.GUID.ToString());
+            }
 
             // start event
             args.Add("Start event", entry.StartEvent.Message);
