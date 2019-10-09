@@ -30,6 +30,13 @@ namespace Model.BuildTimeline
         {
             Debug.Assert(!Calculated);
 
+            // parent set an ID but it's become invalid?
+            if(m_invalidThreadIDs.Contains(ThreadId))
+            {
+                ThreadId = 0;
+            }
+
+            // find the first valid one
             while(m_invalidThreadIDs.Contains(ThreadId))
             {
                 ++ThreadId;

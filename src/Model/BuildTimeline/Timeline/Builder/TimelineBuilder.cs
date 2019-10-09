@@ -430,27 +430,28 @@ namespace Model.BuildTimeline
 
         private void CalculateParallelEntriesFor(TimelineEntry entry, PerNodeThreadRootEntries nodeThreadRootEntries)
         {
-            if(entry.Parent != null)
+            if(entry.BuildEntry.Context != null)
             {
-                Debug.Assert(entry.BuildEntry.Context != null);
-
-                // retrieve all of the overlapping siblings
-                List<TimelineEntry> overlappingSiblings = new List<TimelineEntry>();
-
-                foreach(TimelineEntry sibling in entry.Parent.ChildEntries)
+                if(entry.Parent != null)
                 {
-                    if(entry != sibling && entry.OverlapsWith(sibling))
+                    // retrieve all of the overlapping siblings
+                    List<TimelineEntry> overlappingSiblings = new List<TimelineEntry>();
+
+                    foreach(TimelineEntry sibling in entry.Parent.ChildEntries)
                     {
-                        overlappingSiblings.Add(sibling);
+                        if(entry != sibling && entry.OverlapsWith(sibling))
+                        {
+                            overlappingSiblings.Add(sibling);
+                        }
                     }
-                }
 
-                // we may have calculated some of the siblings, take their information into account
-                foreach(TimelineEntry overlappingSibling in overlappingSiblings)
-                {
-                    if(overlappingSibling.ThreadAffinity.Calculated)
+                    // we may have calculated some of the siblings, take their information into account
+                    foreach(TimelineEntry overlappingSibling in overlappingSiblings)
                     {
-                        entry.ThreadAffinity.AddInvalid(overlappingSibling.ThreadAffinity.ThreadId);
+                        if(overlappingSibling.ThreadAffinity.Calculated)
+                        {
+                            entry.ThreadAffinity.AddInvalid(overlappingSibling.ThreadAffinity.ThreadId);
+                        }
                     }
                 }
 
@@ -475,7 +476,7 @@ namespace Model.BuildTimeline
                 entry.ThreadAffinity.Calculate();
 
                 // are we a new root?
-                if(entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId)
+                if(entry.Parent == null || entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId)
                 {
                     // get or create root list for the <node id, calculated thread id>
                     Tuple<int, int> key = new Tuple<int, int>(entry.BuildEntry.Context.NodeId, entry.ThreadAffinity.ThreadId);
