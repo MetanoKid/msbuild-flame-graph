@@ -37,5 +37,20 @@ namespace Model.BuildTimeline
             return BuildEntry.StartEvent.Timestamp < other.BuildEntry.EndEvent.Timestamp &&
                    other.BuildEntry.StartEvent.Timestamp < BuildEntry.EndEvent.Timestamp;
         }
+
+        public bool IsAncestorOf(TimelineEntry other)
+        {
+            if(other == null)
+            {
+                return false;
+            }
+
+            if(this == other.Parent)
+            {
+                return true;
+            }
+
+            return IsAncestorOf(other.Parent);
+        }
     }
 }

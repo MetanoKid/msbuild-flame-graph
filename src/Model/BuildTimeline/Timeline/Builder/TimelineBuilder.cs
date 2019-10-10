@@ -458,13 +458,12 @@ namespace Model.BuildTimeline
                 // also, check the overlapping root entries from each calculated thread within the same node
                 foreach(var pair in nodeThreadRootEntries)
                 {
-                    if(pair.Key.Item1 == entry.BuildEntry.Context.NodeId &&
-                       pair.Key.Item2 != entry.ThreadAffinity.ThreadId)
+                    if(pair.Key.Item1 == entry.BuildEntry.Context.NodeId)
                     {
                         foreach(TimelineEntry root in pair.Value)
                         {
                             Debug.Assert(root.ThreadAffinity.Calculated);
-                            if(entry.OverlapsWith(root))
+                            if(!root.IsAncestorOf(entry) && entry.OverlapsWith(root))
                             {
                                 entry.ThreadAffinity.AddInvalid(root.ThreadAffinity.ThreadId);
                             }
@@ -489,12 +488,12 @@ namespace Model.BuildTimeline
 
                     rootsInNodeThread.Add(entry);
                 }
+            }
 
-                // now that we've decided where the entry was executed, transfer this data to child entries
-                foreach(TimelineEntry child in entry.ChildEntries)
-                {
-                    child.ThreadAffinity.InheritDataFrom(entry.ThreadAffinity);
-                }
+            // now that we've decided where the entry was executed, transfer this data to child entries
+            foreach(TimelineEntry child in entry.ChildEntries)
+            {
+                child.ThreadAffinity.InheritDataFrom(entry.ThreadAffinity);
             }
 
             // continue with child entries
