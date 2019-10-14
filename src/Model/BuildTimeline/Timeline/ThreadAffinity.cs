@@ -47,6 +47,8 @@ namespace Model.BuildTimeline
 
         public void InheritDataFrom(ThreadAffinity other)
         {
+            Debug.Assert(!Calculated);
+
             foreach(int invalidThreadId in other.m_invalidThreadIDs)
             {
                 m_invalidThreadIDs.Add(invalidThreadId);
