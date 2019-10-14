@@ -1,29 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Model.BuildTimeline
 {
     public class TimelineEntry
     {
-        public TimelineEntry Parent { get; private set; }
-        public BuildEntry BuildEntry { get; private set; }
-        public List<TimelineEntry> ChildEntries { get; private set; }
-        public ThreadAffinity ThreadAffinity { get; private set; }
+        public DateTime StartTimestamp { get; }
+        public DateTime EndTimestamp { get; }
+
+        public TimeSpan ElapsedTime
+        {
+            get
+            {
+                return EndTimestamp - StartTimestamp;
+            }
+        }
 
         public Guid GUID { get; }
+        public string Name { get; }
+        public TimelineEntry Parent { get; private set; }
+        public List<TimelineEntry> ChildEntries { get; }
+        public ThreadAffinity ThreadAffinity { get; }
+        public int NodeId { get; }
 
-        public TimelineEntry(BuildEntry buildEntry)
+        public TimelineEntry(string name, int nodeId, DateTime startTimestamp, DateTime endTimestamp)
         {
-            BuildEntry = buildEntry;
+            GUID = Guid.NewGuid();
+            Name = name;
             Parent = null;
             ChildEntries = new List<TimelineEntry>();
             ThreadAffinity = new ThreadAffinity();
-
-            GUID = Guid.NewGuid();
+            NodeId = nodeId;
+            StartTimestamp = startTimestamp;
+            EndTimestamp = endTimestamp;
         }
 
         public void AddChild(TimelineEntry entry)
@@ -34,8 +43,9 @@ namespace Model.BuildTimeline
 
         public bool OverlapsWith(TimelineEntry other)
         {
-            return BuildEntry.StartEvent.Timestamp < other.BuildEntry.EndEvent.Timestamp &&
-                   other.BuildEntry.StartEvent.Timestamp < BuildEntry.EndEvent.Timestamp;
+            return NodeId == other.NodeId &&
+                   StartTimestamp < other.EndTimestamp &&
+                   other.StartTimestamp < EndTimestamp;
         }
 
         public bool IsAncestorOf(TimelineEntry other)

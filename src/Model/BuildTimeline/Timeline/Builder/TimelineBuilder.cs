@@ -384,20 +384,20 @@ namespace Model.BuildTimeline
 
             // build belongs to NodeId 0, as reported by MSBuild, while other entries start at NodeId 1
             Debug.Assert(context.RootEntry.Context == null);
-            TimelineEntry buildTimelineEntry = new TimelineEntry(context.RootEntry);
-            timeline.AddRoot(buildTimelineEntry);
+            TimelineBuildEntry topLevelTimelineBuildEntry = new TimelineBuildEntry(context.RootEntry);
+            timeline.AddRoot(topLevelTimelineBuildEntry);
 
             // process other entries
-            BuildTimelineEntries(timeline, buildTimelineEntry);
+            BuildTimelineEntries(timeline, topLevelTimelineBuildEntry);
 
             return timeline;
         }
 
-        private void BuildTimelineEntries(Timeline timeline, TimelineEntry parent)
+        private void BuildTimelineEntries(Timeline timeline, TimelineBuildEntry parent)
         {
             foreach(BuildEntry childEntry in parent.BuildEntry.ChildEntries)
             {
-                TimelineEntry timelineEntry = new TimelineEntry(childEntry);
+                TimelineBuildEntry timelineEntry = new TimelineBuildEntry(childEntry);
 
                 // same NodeId? there's a TimelineEntry hierarchy
                 if(parent.BuildEntry.Context?.NodeId == childEntry.Context.NodeId)
@@ -430,8 +430,6 @@ namespace Model.BuildTimeline
 
         private void CalculateParallelEntriesFor(TimelineEntry entry, PerNodeThreadRootEntries nodeThreadRootEntries)
         {
-            int entryNodeId = entry.BuildEntry.Context == null ? 0 : entry.BuildEntry.Context.NodeId;
-
             if(entry.Parent != null)
             {
                 // retrieve all of the overlapping siblings
@@ -458,7 +456,7 @@ namespace Model.BuildTimeline
             // also, check the overlapping root entries from each calculated thread within the same node
             foreach(var pair in nodeThreadRootEntries)
             {
-                if(pair.Key.Item1 == entryNodeId)
+                if(pair.Key.Item1 == entry.NodeId)
                 {
                     foreach(TimelineEntry root in pair.Value)
                     {
@@ -478,7 +476,7 @@ namespace Model.BuildTimeline
             if(entry.Parent == null || entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId)
             {
                 // get or create root list for the <node id, calculated thread id>
-                Tuple<int, int> key = new Tuple<int, int>(entryNodeId, entry.ThreadAffinity.ThreadId);
+                Tuple<int, int> key = new Tuple<int, int>(entry.NodeId, entry.ThreadAffinity.ThreadId);
                 List<TimelineEntry> rootsInNodeThread = null;
                 if(!nodeThreadRootEntries.TryGetValue(key, out rootsInNodeThread))
                 {

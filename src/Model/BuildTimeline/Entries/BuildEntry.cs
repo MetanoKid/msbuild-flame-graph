@@ -21,16 +21,6 @@ namespace Model.BuildTimeline
             }
         }
 
-        // time elapsed between start and end events
-        public TimeSpan ElapsedTime
-        {
-            get
-            {
-                Debug.Assert(StartEvent != null && EndEvent != null);
-                return EndEvent.Timestamp - StartEvent.Timestamp;
-            }
-        }
-
         // parent entry, if any
         public BuildEntry Parent { get; private set; }
 

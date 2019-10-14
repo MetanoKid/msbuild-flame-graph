@@ -23,14 +23,7 @@ namespace Model.BuildTimeline
 
         public void AddRoot(TimelineEntry root)
         {
-            if(root.BuildEntry.Context == null)
-            {
-                PerNodeRootEntries[0].Add(root);
-            }
-            else
-            {
-                PerNodeRootEntries[root.BuildEntry.Context.NodeId].Add(root);
-            }
+            PerNodeRootEntries[root.NodeId].Add(root);
         }
     }
 }
