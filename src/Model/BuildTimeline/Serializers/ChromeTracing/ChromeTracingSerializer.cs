@@ -74,7 +74,7 @@ namespace Model
                 ph = 'B',
                 pid = entry.StartEvent.Context != null ? entry.StartEvent.Context.NodeId : 0,
                 tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                ts = (entry.StartEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
+                ts = (entry.StartEvent.Timestamp - startTimestamp).TotalMilliseconds,
                 name = ExtractTracingNameFrom(entry.StartEvent),
             });
 
@@ -99,7 +99,7 @@ namespace Model
                 ph = 'E',
                 pid = entry.EndEvent.Context != null ? entry.EndEvent.Context.NodeId : 0,
                 tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                ts = (entry.EndEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
+                ts = (entry.EndEvent.Timestamp - startTimestamp).TotalMilliseconds,
                 name = ExtractTracingNameFrom(entry.StartEvent),
                 args = args,
             });
