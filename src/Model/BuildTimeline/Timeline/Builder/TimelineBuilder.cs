@@ -430,64 +430,63 @@ namespace Model.BuildTimeline
 
         private void CalculateParallelEntriesFor(TimelineEntry entry, PerNodeThreadRootEntries nodeThreadRootEntries)
         {
-            if(entry.BuildEntry.Context != null)
+            int entryNodeId = entry.BuildEntry.Context == null ? 0 : entry.BuildEntry.Context.NodeId;
+
+            if(entry.Parent != null)
             {
-                if(entry.Parent != null)
+                // retrieve all of the overlapping siblings
+                List<TimelineEntry> overlappingSiblings = new List<TimelineEntry>();
+
+                foreach(TimelineEntry sibling in entry.Parent.ChildEntries)
                 {
-                    // retrieve all of the overlapping siblings
-                    List<TimelineEntry> overlappingSiblings = new List<TimelineEntry>();
-
-                    foreach(TimelineEntry sibling in entry.Parent.ChildEntries)
+                    if(entry != sibling && entry.OverlapsWith(sibling))
                     {
-                        if(entry != sibling && entry.OverlapsWith(sibling))
-                        {
-                            overlappingSiblings.Add(sibling);
-                        }
-                    }
-
-                    // we may have calculated some of the siblings, take their information into account
-                    foreach(TimelineEntry overlappingSibling in overlappingSiblings)
-                    {
-                        if(overlappingSibling.ThreadAffinity.Calculated)
-                        {
-                            entry.ThreadAffinity.AddInvalid(overlappingSibling.ThreadAffinity.ThreadId);
-                        }
+                        overlappingSiblings.Add(sibling);
                     }
                 }
 
-                // also, check the overlapping root entries from each calculated thread within the same node
-                foreach(var pair in nodeThreadRootEntries)
+                // we may have calculated some of the siblings, take their information into account
+                foreach(TimelineEntry overlappingSibling in overlappingSiblings)
                 {
-                    if(pair.Key.Item1 == entry.BuildEntry.Context.NodeId)
+                    if(overlappingSibling.ThreadAffinity.Calculated)
                     {
-                        foreach(TimelineEntry root in pair.Value)
+                        entry.ThreadAffinity.AddInvalid(overlappingSibling.ThreadAffinity.ThreadId);
+                    }
+                }
+            }
+
+            // also, check the overlapping root entries from each calculated thread within the same node
+            foreach(var pair in nodeThreadRootEntries)
+            {
+                if(pair.Key.Item1 == entryNodeId)
+                {
+                    foreach(TimelineEntry root in pair.Value)
+                    {
+                        Debug.Assert(root.ThreadAffinity.Calculated);
+                        if(!root.IsAncestorOf(entry) && entry.OverlapsWith(root))
                         {
-                            Debug.Assert(root.ThreadAffinity.Calculated);
-                            if(!root.IsAncestorOf(entry) && entry.OverlapsWith(root))
-                            {
-                                entry.ThreadAffinity.AddInvalid(root.ThreadAffinity.ThreadId);
-                            }
+                            entry.ThreadAffinity.AddInvalid(root.ThreadAffinity.ThreadId);
                         }
                     }
                 }
+            }
 
-                // now calculate where we think the entry was executed
-                entry.ThreadAffinity.Calculate();
+            // now calculate where we think the entry was executed
+            entry.ThreadAffinity.Calculate();
 
-                // are we a new root?
-                if(entry.Parent == null || entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId)
+            // are we a new root?
+            if(entry.Parent == null || entry.ThreadAffinity.ThreadId != entry.Parent.ThreadAffinity.ThreadId)
+            {
+                // get or create root list for the <node id, calculated thread id>
+                Tuple<int, int> key = new Tuple<int, int>(entryNodeId, entry.ThreadAffinity.ThreadId);
+                List<TimelineEntry> rootsInNodeThread = null;
+                if(!nodeThreadRootEntries.TryGetValue(key, out rootsInNodeThread))
                 {
-                    // get or create root list for the <node id, calculated thread id>
-                    Tuple<int, int> key = new Tuple<int, int>(entry.BuildEntry.Context.NodeId, entry.ThreadAffinity.ThreadId);
-                    List<TimelineEntry> rootsInNodeThread = null;
-                    if(!nodeThreadRootEntries.TryGetValue(key, out rootsInNodeThread))
-                    {
-                        rootsInNodeThread = new List<TimelineEntry>();
-                        nodeThreadRootEntries[key] = rootsInNodeThread;
-                    }
-
-                    rootsInNodeThread.Add(entry);
+                    rootsInNodeThread = new List<TimelineEntry>();
+                    nodeThreadRootEntries[key] = rootsInNodeThread;
                 }
+
+                rootsInNodeThread.Add(entry);
             }
 
             // now that we've decided where the entry was executed, transfer this data to child entries
