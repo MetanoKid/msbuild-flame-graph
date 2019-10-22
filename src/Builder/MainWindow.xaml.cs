@@ -64,7 +64,8 @@ namespace Builder
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
-            if(dialog.ShowDialog() == true)
+            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.BuildConfiguration} - {m_viewModel.BuildPlatform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Events";
+            if (dialog.ShowDialog() == true)
             {
                 m_viewModel.BuildMessages.Clear();
 
@@ -107,6 +108,7 @@ namespace Builder
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
+            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.BuildConfiguration} - {m_viewModel.BuildPlatform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Trace";
             if (dialog.ShowDialog() == true)
             {
                 m_viewModel.BuildMessages.Clear();
