@@ -76,12 +76,20 @@ namespace Model
             globalProperties.Add("ForceImportBeforeCppTargets", Path.GetFullPath(@"Resources\ExtraCompilerLinkerOptions.props"));
 
             // let data extractors know we're about to start
-            dataExtractors.ForEach(e => e.BeforeBuildStarted());
+            dataExtractors.ForEach(e => e.BeforeBuildStarted(new CompilationDataExtractor.BuildStartedData()
+            {
+                SolutionPath = m_solution.Path,
+                Configuration = configuration,
+                Platform = platform,
+                Target = target,
+                MaxParallelProjects = parameters.MaxNodeCount,
+                MaxParallelCLPerProject = maxParallelCL,
+            }));
 
             // this represents our build
             BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { target }, null);
 
-            // this call is synchronous, so it will stop here until it ends
+            // this call is synchronous, so it will stop here until build ends
             BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, data);
 
             // process the result
@@ -95,7 +103,7 @@ namespace Model
                     break;
             }
 
-            dataExtractors.ForEach(e => e.AfterBuildFinished());
+            dataExtractors.ForEach(e => e.AfterBuildFinished(Result));
 
             Status = CompilationStatus.Completed;
         }

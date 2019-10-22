@@ -379,25 +379,24 @@ namespace Model.BuildTimeline
 
         private Timeline BuildTimelineFrom(BuildData buildData, TimelineBuilderContext context)
         {
-            // TODO: extract processor count from build data
-            Timeline timeline = new Timeline(Environment.ProcessorCount);
+            Timeline timeline = new Timeline(buildData.MaxParallelProjects);
 
             // build belongs to NodeId 0, as reported by MSBuild, while other entries start at NodeId 1
             Debug.Assert(context.RootEntry.Context == null);
-            TimelineBuildEntry topLevelTimelineBuildEntry = new TimelineBuildEntry(context.RootEntry);
+            TimelineBuildEntry topLevelTimelineBuildEntry = new TimelineBuildEntry(context.RootEntry, buildData);
             timeline.AddRoot(topLevelTimelineBuildEntry);
 
             // process other entries
-            BuildTimelineEntries(timeline, topLevelTimelineBuildEntry);
+            BuildTimelineEntries(timeline, topLevelTimelineBuildEntry, buildData);
 
             return timeline;
         }
 
-        private void BuildTimelineEntries(Timeline timeline, TimelineBuildEntry parent)
+        private void BuildTimelineEntries(Timeline timeline, TimelineBuildEntry parent, BuildData buildData)
         {
             foreach(BuildEntry childEntry in parent.BuildEntry.ChildEntries)
             {
-                TimelineBuildEntry timelineEntry = new TimelineBuildEntry(childEntry);
+                TimelineBuildEntry timelineEntry = new TimelineBuildEntry(childEntry, buildData);
 
                 // same NodeId? there's a TimelineEntry hierarchy
                 if(parent.BuildEntry.Context?.NodeId == childEntry.Context.NodeId)
@@ -411,7 +410,7 @@ namespace Model.BuildTimeline
                 }
 
                 Debug.Assert(timelineEntry != null);
-                BuildTimelineEntries(timeline, timelineEntry);
+                BuildTimelineEntries(timeline, timelineEntry, buildData);
             }
         }
         
