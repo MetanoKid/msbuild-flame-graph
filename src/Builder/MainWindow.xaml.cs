@@ -69,7 +69,7 @@ namespace Builder
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
-            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.BuildConfiguration} - {m_viewModel.BuildPlatform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Events";
+            //dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.BuildConfiguration} - {m_viewModel.BuildPlatform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Events";
             if (dialog.ShowDialog() == true)
             {
                 m_viewModel.BuildMessages.Clear();
@@ -86,12 +86,12 @@ namespace Builder
                 // asynchronously build the solution
                 Task.Run(() => {
                     m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
-                                                                  m_viewModel.BuildConfiguration,
-                                                                  m_viewModel.BuildPlatform,
-                                                                  m_viewModel.BuildTarget,
-                                                                  Environment.ProcessorCount,
-                                                                  Environment.ProcessorCount,
-                                                                  dataExtractors);
+                                                       m_viewModel.SelectedConfigurationPlatform.Configuration,
+                                                       m_viewModel.SelectedConfigurationPlatform.Platform,
+                                                       m_viewModel.BuildTarget,
+                                                       Environment.ProcessorCount,
+                                                       Environment.ProcessorCount,
+                                                       dataExtractors);
 
                     Debug.Assert(eventsExtractor.IsFinished);
 
@@ -113,7 +113,7 @@ namespace Builder
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
-            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.BuildConfiguration} - {m_viewModel.BuildPlatform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Trace";
+            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.SelectedConfigurationPlatform.Configuration} - {m_viewModel.SelectedConfigurationPlatform.Platform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Trace";
             if (dialog.ShowDialog() == true)
             {
                 m_viewModel.BuildMessages.Clear();
@@ -130,8 +130,8 @@ namespace Builder
                 // asynchronously build the solution
                 Task.Run(() => {
                     m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
-                                                       m_viewModel.BuildConfiguration,
-                                                       m_viewModel.BuildPlatform,
+                                                       m_viewModel.SelectedConfigurationPlatform.Configuration,
+                                                       m_viewModel.SelectedConfigurationPlatform.Platform,
                                                        m_viewModel.BuildTarget,
                                                        Environment.ProcessorCount,
                                                        Environment.ProcessorCount,

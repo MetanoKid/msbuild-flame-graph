@@ -14,6 +14,11 @@ namespace Model
         {
             public string Configuration { get; set; }
             public string Platform { get; set; }
+
+            public override string ToString()
+            {
+                return $"{Configuration} | {Platform}";
+            }
         }
 
         public SolutionMetadata Metadata { get; set; }

@@ -31,24 +31,23 @@
                     Margin="0,0,0,5">
             <StackPanel Orientation="Horizontal"
                         Margin="0,0,30,0">
-                <Label>Configuration</Label>
-                <TextBox Width="60"
-                         Padding="2"
-                         Text="{Binding BuildConfiguration}" ToolTip="Debug, Release, ..." VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        Margin="0,0,30,0">
-                <Label>Platform</Label>
-                <TextBox Width="60"
-                         Padding="2"
-                         Text="{Binding BuildPlatform}" VerticalAlignment="Center"/>
+                <Label>Configuration | Platform</Label>
+                <ComboBox ItemsSource="{Binding Solution.ValidConfigurationPlatforms}"
+                          Width="100"
+                          VerticalAlignment="Center"
+                          SelectedItem="{Binding SelectedConfigurationPlatform}"></ComboBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal"
                         Margin="0,0,30,0">
                 <Label>Target</Label>
-                <TextBox Width="60"
-                         Padding="2"
-                         Text="{Binding BuildTarget}" VerticalAlignment="Center"></TextBox>
+                <ComboBox Width="80"
+                          VerticalAlignment="Center"
+                          SelectedValue="{Binding BuildTarget}"
+                          SelectedValuePath="Name">
+                    <ComboBoxItem Name="Build">Build</ComboBoxItem>
+                    <ComboBoxItem Name="Rebuild">Rebuild</ComboBoxItem>
+                    <ComboBoxItem Name="Clean">Clean</ComboBoxItem>
+                </ComboBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Button Content="Build solution, save events"
