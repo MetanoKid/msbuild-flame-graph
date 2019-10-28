@@ -92,8 +92,10 @@
     <Compile Include="SolutionCompiler\DataExtractor\CompilationDataExtractor.cs" />
     <Compile Include="SolutionCompiler\DataExtractor\CustomEventFormatExtractor.cs" />
     <Compile Include="SolutionCompiler\SolutionCompiler.cs" />
+    <Compile Include="Solution\Project.cs" />
     <Compile Include="Solution\Solution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Solution\SolutionLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\ExtraCompilerLinkerOptions.props">

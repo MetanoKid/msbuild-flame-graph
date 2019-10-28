@@ -26,10 +26,15 @@ namespace Builder
 
         private void LoadSolution(string path)
         {
-            m_viewModel.Solution = new Model.Solution(path);
-            m_viewModel.SolutionCompiler = new Model.SolutionCompiler();
-            m_viewModel.BuildMessages = new System.Collections.ObjectModel.ObservableCollection<Model.BuildMessage>();
-            m_viewModel.BuildMessages.CollectionChanged += ScrollBuildMessageToBottom;
+            try
+            {
+                m_viewModel.Solution = Model.SolutionLoader.From(path);
+                m_viewModel.SolutionCompiler = new Model.SolutionCompiler();
+                m_viewModel.BuildMessages = new System.Collections.ObjectModel.ObservableCollection<Model.BuildMessage>();
+                m_viewModel.BuildMessages.CollectionChanged += ScrollBuildMessageToBottom;
+            } catch(ArgumentException ex) {
+                MessageBox.Show(ex.Message, "Invalid file");
+            }
         }
 
         private void OnBuildMessage(Model.BuildMessage message)
