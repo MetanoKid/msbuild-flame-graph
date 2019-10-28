@@ -80,7 +80,7 @@ namespace Model
                 ph = 'B',
                 pid = timelineEntry.NodeId,
                 tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                ts = (timelineEntry.StartTimestamp - buildStartTimestamp).TotalMilliseconds,
+                ts = (timelineEntry.StartTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
             });
 
@@ -112,7 +112,7 @@ namespace Model
                 ph = 'E',
                 pid = timelineEntry.NodeId,
                 tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds,
+                ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
                 args = args,
             });
