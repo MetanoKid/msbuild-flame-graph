@@ -10,6 +10,8 @@ namespace Builder
 {
     public class BuilderViewModel : Model.PropertyChangeNotifier
     {
+        public Commands Commands { get; private set; }
+
         public Solution Solution
         {
             get
@@ -85,5 +87,21 @@ namespace Builder
         private ObservableCollection<Model.BuildMessage> m_buildMessages;
         private Solution.ConfigurationPlatform m_selectedConfigurationPlatform;
         private string m_buildTarget;
+
+        public BuilderViewModel()
+        {
+            Commands = new Commands(this);
+            BuildMessages = new ObservableCollection<BuildMessage>();
+        }
+
+        public void LoadSolution(string path)
+        {
+            Solution = null;
+            SolutionCompiler = null;
+            BuildMessages.Clear();
+
+            Solution = SolutionLoader.From(path);
+            SolutionCompiler = new SolutionCompiler();
+        }
     }
 }

@@ -21,20 +21,9 @@ namespace Builder
             InitializeComponent();
 
             m_viewModel = new BuilderViewModel();
-            DataContext = m_viewModel;
-        }
+            m_viewModel.BuildMessages.CollectionChanged += ScrollBuildMessageToBottom;
 
-        private void LoadSolution(string path)
-        {
-            try
-            {
-                m_viewModel.Solution = Model.SolutionLoader.From(path);
-                m_viewModel.SolutionCompiler = new Model.SolutionCompiler();
-                m_viewModel.BuildMessages = new System.Collections.ObjectModel.ObservableCollection<Model.BuildMessage>();
-                m_viewModel.BuildMessages.CollectionChanged += ScrollBuildMessageToBottom;
-            } catch(ArgumentException ex) {
-                MessageBox.Show(ex.Message, "Invalid file");
-            }
+            DataContext = m_viewModel;
         }
 
         private void OnBuildMessage(Model.BuildMessage message)
@@ -51,17 +40,6 @@ namespace Builder
                 Decorator border = VisualTreeHelper.GetChild(BuildMessageList, 0) as Decorator;
                 ScrollViewer scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
                 scrollViewer.ScrollToBottom();
-            }
-        }
-
-        private void OnClickBrowseSolution(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "Visual Studio solution|*.sln";
-
-            if (dialog.ShowDialog() == true)
-            {
-                LoadSolution(dialog.FileName);
             }
         }
 
