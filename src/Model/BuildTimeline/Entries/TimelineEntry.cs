@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Model.BuildTimeline
 {
     public class TimelineEntry
     {
         public DateTime StartTimestamp { get; }
-        public DateTime EndTimestamp { get; }
+        public DateTime EndTimestamp { get; private set; }
 
         public TimeSpan ElapsedTime
         {
@@ -17,7 +18,7 @@ namespace Model.BuildTimeline
         }
 
         public Guid GUID { get; }
-        public string Name { get; }
+        public string Name { get; set; }
         public TimelineEntry Parent { get; private set; }
         public List<TimelineEntry> ChildEntries { get; }
         public ThreadAffinity ThreadAffinity { get; }
@@ -61,6 +62,12 @@ namespace Model.BuildTimeline
             }
 
             return IsAncestorOf(other.Parent);
+        }
+
+        public void SetEndTimestamp(DateTime timestamp)
+        {
+            Debug.Assert(StartTimestamp < timestamp);
+            EndTimestamp = timestamp;
         }
     }
 }
