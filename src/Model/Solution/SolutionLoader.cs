@@ -23,7 +23,7 @@ namespace Model
         private readonly static Regex s_regexGlobalDataEnd = new Regex(@"^EndGlobal$");
         private readonly static Regex s_regexConfigurationPlatformStart = new Regex(@"^\s+GlobalSection\(SolutionConfigurationPlatforms\) = preSolution$");
         private readonly static Regex s_regexConfigurationPlatformEnd = new Regex(@"^\s+EndGlobalSection$");
-        private readonly static Regex s_regexConfigurationPlatform = new Regex(@"^\s+(\w+)\|(\w+) = (\w+)\|(\w+)$");
+        private readonly static Regex s_regexConfigurationPlatform = new Regex(@"^\s+(.+)\|(.+) = (.+)\|(.+)$");
 
         public static Solution From(string path)
         {
