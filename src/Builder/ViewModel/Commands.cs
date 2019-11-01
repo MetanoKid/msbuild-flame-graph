@@ -38,6 +38,7 @@ namespace Builder
     public class Commands
     {
         public ICommand OnSelectSolution { get; private set; }
+        public ICommand OnSelectBuildSolution { get; private set; }
         public ICommand OnSelectCreateTimelineFromEventsFile { get; private set; }
 
         private BuilderViewModel m_viewModel;
@@ -47,6 +48,7 @@ namespace Builder
             m_viewModel = viewModel;
 
             OnSelectSolution = new DelegateCommand<object>(_ => OpenSolution());
+            OnSelectBuildSolution = new DelegateCommand<MainWindow>(BuildSolution);
             OnSelectCreateTimelineFromEventsFile = new DelegateCommand<object>(_ => CreateTimeline());
         }
 
@@ -65,6 +67,50 @@ namespace Builder
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        private void BuildSolution(MainWindow window)
+        {
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "JSON file (*.json)|*.json";
+            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.SelectedConfigurationPlatform.Configuration} - {m_viewModel.SelectedConfigurationPlatform.Platform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Events";
+            if (dialog.ShowDialog() == true)
+            {
+                m_viewModel.BuildMessages.Clear();
+
+                List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+
+                // extractor that redirects messages to UI
+                dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(window.OnBuildMessage));
+
+                // extractor that accumulates all raw messages then converts them into a custom representation
+                Model.CustomEventFormatExtractor eventsExtractor = new Model.CustomEventFormatExtractor();
+                dataExtractors.Add(eventsExtractor);
+
+                // asynchronously build the solution
+                Task.Run(() => {
+                    m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
+                                                       m_viewModel.SelectedConfigurationPlatform.Configuration,
+                                                       m_viewModel.SelectedConfigurationPlatform.Platform,
+                                                       m_viewModel.BuildTarget,
+                                                       Environment.ProcessorCount,
+                                                       Environment.ProcessorCount,
+                                                       dataExtractors);
+
+                    Debug.Assert(eventsExtractor.IsFinished);
+
+                    // dump custom data to the requested JSON file
+                    string json = JsonConvert.SerializeObject(eventsExtractor.BuildData,
+                        Formatting.Indented,
+                        new JsonSerializerSettings()
+                        {
+                            NullValueHandling = NullValueHandling.Ignore,
+                            TypeNameHandling = TypeNameHandling.Auto,
+                        });
+
+                    File.WriteAllText(dialog.FileName, json);
+                });
             }
         }
 

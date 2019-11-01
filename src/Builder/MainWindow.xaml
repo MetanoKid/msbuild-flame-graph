@@ -61,7 +61,8 @@
                 <Button Content="Build solution, save events"
                         HorizontalAlignment="Center"
                         Padding="10,3"
-                        Click="OnClickBuildSolutionSaveEvents"/>
+                        Command="{Binding Commands.OnSelectBuildSolution}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
             </StackPanel>
         </StackPanel>
         <ListView Name="BuildMessageList"
