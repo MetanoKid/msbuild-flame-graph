@@ -12,6 +12,8 @@
             <MenuItem Header="File">
                 <MenuItem Header="Open solution..."
                           Command="{Binding Commands.OnSelectSolution}"></MenuItem>
+                <MenuItem Header="Create timeline from events file..."
+                          Command="{Binding Commands.OnSelectCreateTimelineFromEventsFile}"></MenuItem>
             </MenuItem>
         </Menu>
         <Border BorderThickness="0"
