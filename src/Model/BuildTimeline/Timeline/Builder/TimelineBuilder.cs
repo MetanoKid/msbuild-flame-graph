@@ -59,6 +59,9 @@ namespace Model.BuildTimeline
 
     public class TimelineBuilder
     {
+        // when calculating parallel executions, use this as the separation in ThreadId between two entries
+        private static readonly int s_ParallelExecutionThreadIdIncrement = 1000;
+
         private BuildData m_buildData;
 
         public TimelineBuilder(BuildData buildData)
@@ -66,7 +69,7 @@ namespace Model.BuildTimeline
             m_buildData = buildData;
         }
 
-        public Timeline Build()
+        public Timeline Build(TimelineEntryPostProcessor.Processor perEntryPostProcessors)
         {
             TimelineBuilderContext context = ProcessEvents(m_buildData.Events);
             Debug.Assert(!context.HasOpenBuilds);
@@ -76,6 +79,11 @@ namespace Model.BuildTimeline
             Debug.Assert(context.RootEntry != null);
 
             Timeline timeline = BuildTimelineFrom(m_buildData, context);
+            if(perEntryPostProcessors != null)
+            {
+                PostProcess(timeline, perEntryPostProcessors);
+            }
+
             CalculateParallelEntries(timeline);
 
             return timeline;
@@ -429,6 +437,11 @@ namespace Model.BuildTimeline
 
         private void CalculateParallelEntriesFor(TimelineEntry entry, PerNodeThreadRootEntries nodeThreadRootEntries)
         {
+            if(entry is TimelineBuildEntry)
+            {
+                entry.ThreadAffinity.SetParameters(entry.ThreadAffinity.ThreadId, s_ParallelExecutionThreadIdIncrement);
+            }
+
             if(entry.Parent != null)
             {
                 // retrieve all of the overlapping siblings
@@ -496,6 +509,27 @@ namespace Model.BuildTimeline
             foreach(TimelineEntry child in entry.ChildEntries)
             {
                 CalculateParallelEntriesFor(child, nodeThreadRootEntries);
+            }
+        }
+
+        private void PostProcess(Timeline timeline, TimelineEntryPostProcessor.Processor perEntryPostProcessors)
+        {
+            foreach(List<TimelineEntry> rootsInNode in timeline.PerNodeRootEntries)
+            {
+                foreach(TimelineEntry root in rootsInNode)
+                {
+                    PostProcess(root, perEntryPostProcessors);
+                }
+            }
+        }
+
+        private void PostProcess(TimelineEntry entry, TimelineEntryPostProcessor.Processor perEntryPostProcessors)
+        {
+            perEntryPostProcessors(entry);
+
+            foreach(TimelineEntry child in entry.ChildEntries)
+            {
+                PostProcess(child, perEntryPostProcessors);
             }
         }
     }

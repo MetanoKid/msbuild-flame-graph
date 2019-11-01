@@ -6,6 +6,7 @@ namespace Model
     public class ChromeTrace
     {
         public List<ChromeTracingEvent> traceEvents = new List<ChromeTracingEvent>();
+        public string displayTimeUnit = "ms";
     }
 
     public class ChromeTracingEvent
@@ -17,6 +18,8 @@ namespace Model
         public Nullable<double> dur;
         public string cname;
         public string name;
+
+        // TODO: substitute with JObject so we can add data freely?
         public Dictionary<string, string> args;
     }
 }

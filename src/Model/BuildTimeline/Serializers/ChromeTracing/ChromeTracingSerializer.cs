@@ -15,8 +15,6 @@ namespace Model
 {
     public class ChromeTracingSerializer
     {
-        private static int s_ParallelProjectThreadOffset = 100;
-
         public static ChromeTrace BuildTrace(Timeline timeline)
         {
             Debug.Assert(timeline.PerNodeRootEntries.Length > 0);
@@ -79,7 +77,7 @@ namespace Model
             {
                 ph = 'B',
                 pid = timelineEntry.NodeId,
-                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                tid = timelineEntry.ThreadAffinity.ThreadId,
                 ts = (timelineEntry.StartTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
             });
@@ -111,7 +109,7 @@ namespace Model
             {
                 ph = 'E',
                 pid = timelineEntry.NodeId,
-                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                tid = timelineEntry.ThreadAffinity.ThreadId,
                 ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
                 args = args,
@@ -286,7 +284,7 @@ namespace Model
         {
             registeredTIDs.Add(new Tuple<int, int, int>(
                 entry.NodeId,
-                entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                entry.ThreadAffinity.ThreadId,
                 entry.ThreadAffinity.ThreadId
             ));
 
