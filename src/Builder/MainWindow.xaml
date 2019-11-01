@@ -8,9 +8,16 @@
         mc:Ignorable="d"
         Title="Builder" Height="350" Width="1024">
     <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Open solution..."
+                          Command="{Binding Commands.OnSelectSolution}"></MenuItem>
+                <MenuItem Header="Create timeline from events file..."
+                          Command="{Binding Commands.OnSelectCreateTimelineFromEventsFile}"></MenuItem>
+            </MenuItem>
+        </Menu>
         <Border BorderThickness="0"
                 Padding="5"
-                Height="Auto"
                 DockPanel.Dock="Top">
             <DockPanel>
                 <Button x:Name="Browse"
@@ -18,7 +25,7 @@
                         Content="Browse"
                         VerticalAlignment="Center"
                         Padding="10,2,10,2"
-                        Click="OnClickBrowseSolution"/>
+                        Command="{Binding Commands.OnSelectSolution}" />
                 <TextBox x:Name="SolutionFilePath"
                          TextWrapping="Wrap"
                          Margin="0,0,10,0"
@@ -26,18 +33,38 @@
                          Text="{Binding Solution.Path, Mode=OneWay}" />
             </DockPanel>
         </Border>
-        <Button DockPanel.Dock="Bottom"
-                Content="Build solution"
-                HorizontalAlignment="Center"
-                Padding="10,3"
-                Margin="0,5"
-                Click="OnClickBuildSolution"/>
-        <Button DockPanel.Dock="Bottom"
-                Content="Save build timeline"
-                HorizontalAlignment="Center"
-                Padding="10,3"
-                Margin="0,5"
-                Click="OnClickSaveBuildTimeline"/>
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,5">
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,30,0">
+                <Label>Configuration | Platform</Label>
+                <ComboBox ItemsSource="{Binding Solution.ValidConfigurationPlatforms}"
+                          Width="100"
+                          VerticalAlignment="Center"
+                          SelectedItem="{Binding SelectedConfigurationPlatform}"></ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>Target</Label>
+                <ComboBox Width="80"
+                          VerticalAlignment="Center"
+                          SelectedValue="{Binding BuildTarget}"
+                          SelectedValuePath="Name">
+                    <ComboBoxItem Name="Build">Build</ComboBoxItem>
+                    <ComboBoxItem Name="Rebuild">Rebuild</ComboBoxItem>
+                    <ComboBoxItem Name="Clean">Clean</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"
+                        Margin="50,0,0,0">
+                <Button Content="Build solution, save events"
+                        HorizontalAlignment="Center"
+                        Padding="10,3"
+                        Command="{Binding Commands.OnSelectBuildSolution}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+            </StackPanel>
+        </StackPanel>
         <ListView Name="BuildMessageList"
                   ItemsSource="{Binding BuildMessages}">
             <ListView.ItemContainerStyle>

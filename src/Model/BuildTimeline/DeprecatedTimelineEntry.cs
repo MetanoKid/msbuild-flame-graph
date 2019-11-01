@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Model
+namespace Model.BuildTimeline
 {
-    public class BuildTimelineEntry
+    public class DeprecatedTimelineEntry
     {
         public BuildEventArgs StartBuildEvent
         {
@@ -35,13 +35,13 @@ namespace Model
             set;
         }
 
-        public BuildTimelineEntry Parent
+        public DeprecatedTimelineEntry Parent
         {
             get;
             private set;
         }
 
-        public List<BuildTimelineEntry> Children
+        public List<DeprecatedTimelineEntry> Children
         {
             get;
             private set;
@@ -53,20 +53,20 @@ namespace Model
             private set;
         }
 
-        public BuildTimelineEntry()
+        public DeprecatedTimelineEntry()
         {
             ThreadAffinity = new ThreadAffinity();
-            Children = new List<BuildTimelineEntry>();
+            Children = new List<DeprecatedTimelineEntry>();
             Messages = new List<BuildMessageEventArgs>();
         }
 
-        public void AddChild(BuildTimelineEntry entry)
+        public void AddChild(DeprecatedTimelineEntry entry)
         {
             Children.Add(entry);
             entry.Parent = this;
         }
 
-        public bool OverlapsWith(BuildTimelineEntry entry)
+        public bool OverlapsWith(DeprecatedTimelineEntry entry)
         {
             return StartBuildEvent.Timestamp < entry.EndBuildEvent.Timestamp &&
                    entry.StartBuildEvent.Timestamp < EndBuildEvent.Timestamp;

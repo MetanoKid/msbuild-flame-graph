@@ -1,5 +1,6 @@
-﻿using Microsoft.Build.Framework;
-using System;
+﻿using System;
+
+// TODO: refactor this class so it's UI-only
 
 namespace Model
 {
@@ -23,13 +24,13 @@ namespace Model
             set;
         }
 
-        public BuildEventContext Context
+        public Microsoft.Build.Framework.BuildEventContext Context
         {
             get;
             set;
         }
 
-        public BuildEventContext ParentContext
+        public Microsoft.Build.Framework.BuildEventContext ParentContext
         {
             get;
             set;

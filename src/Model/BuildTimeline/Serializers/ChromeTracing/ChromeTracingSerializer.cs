@@ -9,61 +9,19 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Diagnostics;
 using System.Reflection;
+using Model.BuildTimeline;
 
 namespace Model
 {
-    public class IgnoreNullValuesConverter : JavaScriptConverter
-    {
-        public override IEnumerable<Type> SupportedTypes
-        {
-            get
-            {
-                return new Type[] { typeof(ChromeTrace), typeof(ChromeTracingEvent) };
-            }
-        }
-
-        public override object Deserialize(IDictionary<string, object> dictionary, Type type, JavaScriptSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IDictionary<string, object> Serialize(object obj, JavaScriptSerializer serializer)
-        {
-            Dictionary<string, object> jsonObject = new Dictionary<string, object>();
-            foreach(var field in obj.GetType().GetFields())
-            {
-                var value = field.GetValue(obj);
-                if(value != null)
-                {
-                    jsonObject.Add(field.Name, value);
-                }
-            }
-
-            return jsonObject;
-        }
-    }
-
     public class ChromeTracingSerializer
     {
         private static int s_ParallelProjectThreadOffset = 100;
-        private static string s_CompilerFrontendColor = "grey";
-        private static string s_CompilerBackendColor = "grey";
 
-        public static string Serialize(BuildTimeline timeline)
+        public static ChromeTrace BuildTrace(Timeline timeline)
         {
-            // build timeline
-            ChromeTrace trace = BuildTrace(timeline);
-
-            // serialize to JSON
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            serializer.RegisterConverters(new JavaScriptConverter[] { new IgnoreNullValuesConverter() });
-            return serializer.Serialize(trace);
-        }
-
-        private static ChromeTrace BuildTrace(BuildTimeline timeline)
-        {
-            Debug.Assert(timeline.PerNodeRootEntries.Count > 0 && timeline.PerNodeRootEntries[0].Count == 1);
-            DateTime buildStartTimestamp = timeline.PerNodeRootEntries[0][0].StartBuildEvent.Timestamp;
+            Debug.Assert(timeline.PerNodeRootEntries.Length > 0);
+            Debug.Assert(timeline.PerNodeRootEntries[0].Count == 1);
+            DateTime buildStartTimestamp = timeline.PerNodeRootEntries[0][0].StartTimestamp;
             ChromeTrace trace = new ChromeTrace();
             
             // dump per process metadata
@@ -82,78 +40,88 @@ namespace Model
             }
 
             // dump source file compilations
-            foreach(var parallelFileCompilation in timeline.ParallelFileCompilations)
+            /*foreach(var parallelFileCompilation in timeline.ParallelFileCompilations)
             {
                 ExtractParallelFileCompilationIntoTrace(parallelFileCompilation, buildStartTimestamp, trace.traceEvents);
-            }
+            }*/
 
             return trace;
         }
 
-        private static void ExtractEventsIntoTrace(BuildTimelineEntry entry, DateTime startTimestamp, List<ChromeTracingEvent> events)
+        private static void ExtractEventsIntoTrace(TimelineEntry timelineEntry, DateTime buildStartTimestamp, List<ChromeTracingEvent> events)
         {
-            if(entry.ElapsedTime == TimeSpan.Zero)
+            Debug.Assert(timelineEntry.ThreadAffinity.Calculated);
+
+            TimelineBuildEntry timelineBuildEntry = timelineEntry as TimelineBuildEntry;
+
+            // skip instantaneous entries
+            if(timelineEntry.ElapsedTime == TimeSpan.Zero)
             {
                 return;
             }
 
-            // start event
+            Dictionary<string, string> args = new Dictionary<string, string>();
+
+            // Guid
+            args.Add("GUID", timelineEntry.GUID.ToString());
+            if(timelineEntry.Parent != null)
+            {
+                args.Add("Parent GUID", timelineEntry.Parent.GUID.ToString());
+            }
+
+            // start
+            if(timelineBuildEntry != null)
+            {
+                args.Add("Start event", timelineBuildEntry.BuildEntry.StartEvent.Message);
+            }
+
             events.Add(new ChromeTracingEvent()
             {
                 ph = 'B',
-                pid = entry.StartBuildEvent.BuildEventContext != null ? entry.StartBuildEvent.BuildEventContext.NodeId : 0,
-                tid = entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                ts = (entry.StartBuildEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                name = ExtractTracingNameFrom(entry.StartBuildEvent),
+                pid = timelineEntry.NodeId,
+                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                ts = (timelineEntry.StartTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
+                name = timelineEntry.Name,
             });
 
             // child events
-            foreach(BuildTimelineEntry child in entry.Children)
+            foreach(TimelineEntry child in timelineEntry.ChildEntries)
             {
-                ExtractEventsIntoTrace(child, startTimestamp, events);
+                ExtractEventsIntoTrace(child, buildStartTimestamp, events);
             }
 
-            // end event
+            // messages during this entry
+            if(timelineBuildEntry != null)
+            {
+                List<Event> messageEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent).ToList();
+                for(int i = 0; i < messageEvents.Count(); ++i)
+                {
+                    double millisecondsSinceStart = (messageEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
+                    args.Add($"Message #{i}", $"[{millisecondsSinceStart:0.###} ms] {messageEvents[i].Message}");
+                }
+            }
+
+            // end
+            if(timelineBuildEntry != null)
+            {
+                args.Add("End event", timelineBuildEntry.BuildEntry.EndEvent.Message);
+            }
+
             events.Add(new ChromeTracingEvent()
             {
                 ph = 'E',
-                pid = entry.EndBuildEvent.BuildEventContext != null ? entry.EndBuildEvent.BuildEventContext.NodeId : 0,
-                tid = entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                ts = (entry.EndBuildEvent.Timestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                name = ExtractTracingNameFrom(entry.StartBuildEvent),
+                pid = timelineEntry.NodeId,
+                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
+                name = timelineEntry.Name,
+                args = args,
             });
         }
 
-        private static string ExtractTracingNameFrom(BuildEventArgs entryEvent)
-        {
-            string name = null;
-
-            if (entryEvent is BuildStartedEventArgs)
-            {
-                name = "Build";
-            }
-            else if (entryEvent is ProjectStartedEventArgs)
-            {
-                name = (entryEvent as ProjectStartedEventArgs).ProjectFile;
-            }
-            else if (entryEvent is TargetStartedEventArgs)
-            {
-                name = (entryEvent as TargetStartedEventArgs).TargetName;
-            }
-            else if (entryEvent is TaskStartedEventArgs)
-            {
-                name = (entryEvent as TaskStartedEventArgs).TaskName;
-            }
-
-            Debug.Assert(name != null);
-
-            return name;
-        }
-
-        private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)
+        /*private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)
         {
             Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext != null);
-            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId != BuildEventContext.InvalidNodeId);
+            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId != Microsoft.Build.Framework.BuildEventContext.InvalidNodeId);
 
             HashSet<Tuple<int, int>> registeredTIDs = new HashSet<Tuple<int, int>>();
 
@@ -243,9 +211,9 @@ namespace Model
                     }
                 });
             }
-        }
+        }*/
 
-        private static void ExtractProcessNamesIntoTrace(BuildTimeline timeline, List<ChromeTracingEvent> events)
+        private static void ExtractProcessNamesIntoTrace(Timeline timeline, List<ChromeTracingEvent> events)
         {
             // node 0 is special: not tied to a node but the build itself
             events.Add(new ChromeTracingEvent()
@@ -259,7 +227,7 @@ namespace Model
             });
 
             // other nodes are as reported by MSBuild
-            for(int i = 1; i < timeline.PerNodeRootEntries.Count; ++i)
+            for(int i = 1; i < timeline.PerNodeRootEntries.Length; ++i)
             {
                 events.Add(new ChromeTracingEvent()
                 {
@@ -273,27 +241,14 @@ namespace Model
             }
         }
 
-        private static void ExtractRegisteredTIDsFromEntry(BuildTimelineEntry entry, HashSet<Tuple<int, int, int>> registeredTIDs)
+        private static void ExtractThreadNamesIntoTrace(Timeline timeline, List<ChromeTracingEvent> events)
         {
-            registeredTIDs.Add(new Tuple<int, int, int>(
-                entry.StartBuildEvent.BuildEventContext != null ? entry.StartBuildEvent.BuildEventContext.NodeId : 0,
-                entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
-                entry.ThreadAffinity.ThreadId
-            ));
-
-            foreach(var child in entry.Children)
-            {
-                ExtractRegisteredTIDsFromEntry(child, registeredTIDs);
-            }
-        }
-
-        private static void ExtractThreadNamesIntoTrace(BuildTimeline timeline, List<ChromeTracingEvent> events)
-        {
+            // Tuple<NodeId, ProcessID, ThreadId>
             HashSet<Tuple<int, int, int>> registeredTIDs = new HashSet<Tuple<int, int, int>>();
             
-            foreach(var perNodeRootEntries in timeline.PerNodeRootEntries)
+            foreach(List<TimelineEntry> rootEntries in timeline.PerNodeRootEntries)
             {
-                foreach (var rootEntry in perNodeRootEntries)
+                foreach (TimelineEntry rootEntry in rootEntries)
                 {
                     ExtractRegisteredTIDsFromEntry(rootEntry, registeredTIDs);
                 }
@@ -324,6 +279,20 @@ namespace Model
                         { "sort_index", tidTuple.Item2.ToString() }
                     }
                 });
+            }
+        }
+
+        private static void ExtractRegisteredTIDsFromEntry(TimelineEntry entry, HashSet<Tuple<int, int, int>> registeredTIDs)
+        {
+            registeredTIDs.Add(new Tuple<int, int, int>(
+                entry.NodeId,
+                entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                entry.ThreadAffinity.ThreadId
+            ));
+
+            foreach (TimelineEntry child in entry.ChildEntries)
+            {
+                ExtractRegisteredTIDsFromEntry(child, registeredTIDs);
             }
         }
     }

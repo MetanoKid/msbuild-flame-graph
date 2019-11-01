@@ -33,6 +33,10 @@
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Extensions" />
@@ -45,30 +49,63 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildLoggers\AllMessagesLogger.cs" />
-    <Compile Include="BuildLoggers\BuildEventsRecordLogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToCallbackLogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToCallbackRawLogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToCallbackUILogger.cs" />
+    <Compile Include="BuildLoggers\AllMessagesToFileLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
-    <Compile Include="BuildTimeline\BuildTimeline.cs" />
-    <Compile Include="BuildTimeline\BuildTimelineBuilder.cs" />
-    <Compile Include="BuildTimeline\BuildTimelineEntry.cs" />
+    <Compile Include="BuildTimeline\Entries\BuildEntry.cs" />
+    <Compile Include="BuildTimeline\Entries\TimelineBuildEntry.cs" />
+    <Compile Include="BuildTimeline\Entries\TimelineEntry.cs" />
+    <Compile Include="BuildTimeline\Events\BuildFinishedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\BuildStartedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\Context\MessageEventContext.cs" />
+    <Compile Include="BuildTimeline\Events\Context\ProjectEventContext.cs" />
+    <Compile Include="BuildTimeline\Events\Context\TargetEventContext.cs" />
+    <Compile Include="BuildTimeline\Events\Context\TaskEventContext.cs" />
+    <Compile Include="BuildTimeline\Events\Converter\Converter.cs" />
+    <Compile Include="BuildTimeline\Events\Converter\EventConverter.cs" />
+    <Compile Include="BuildTimeline\Events\MessageEvent.cs" />
+    <Compile Include="BuildTimeline\Events\ProjectFinishedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\ProjectStartedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\TargetFinishedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\TargetStartedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\TaskFinishedEvent.cs" />
+    <Compile Include="BuildTimeline\Events\TaskStartedEvent.cs" />
+    <Compile Include="BuildTimeline\DeprecatedTimeline.cs" />
+    <Compile Include="BuildTimeline\Timeline\ThreadAffinity.cs" />
+    <Compile Include="BuildTimeline\Timeline\Timeline.cs" />
+    <Compile Include="BuildTimeline\Timeline\Builder\TimelineBuilder.cs" />
+    <Compile Include="BuildTimeline\DeprecatedTimelineEntry.cs" />
+    <Compile Include="BuildTimeline\Events\Event.cs" />
+    <Compile Include="BuildTimeline\Events\Context\EventContext.cs" />
     <Compile Include="BuildTimeline\FileCompilation.cs" />
     <Compile Include="BuildTimeline\ParallelFileCompilation.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingEvent.cs" />
     <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingSerializer.cs" />
-    <Compile Include="BuildTimeline\ThreadAffinity.cs" />
     <Compile Include="Compilation\Compilation.cs" />
     <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\CompilationStatus.cs" />
     <Compile Include="DiskFile\DiskFile.cs" />
     <Compile Include="PropertyChangeNotifier\PropertyChangeNotifier.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\CallbackPerMessageDataExtractor.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\CompilationDataExtractor.cs" />
+    <Compile Include="SolutionCompiler\DataExtractor\CustomEventFormatExtractor.cs" />
     <Compile Include="SolutionCompiler\SolutionCompiler.cs" />
+    <Compile Include="Solution\Project.cs" />
     <Compile Include="Solution\Solution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Solution\SolutionLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\ExtraCompilerLinkerOptions.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

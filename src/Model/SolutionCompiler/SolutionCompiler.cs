@@ -7,8 +7,6 @@ using System.Collections.ObjectModel;
 
 namespace Model
 {
-    public delegate void OnBuildMessage(BuildMessage message);
-
     public class SolutionCompiler : PropertyChangeNotifier
     {
         public Compilation CurrentCompilation
@@ -26,17 +24,15 @@ namespace Model
         }
 
         private Compilation m_currentCompilation;
-        private Logger m_logger;
 
-        public SolutionCompiler(OnBuildMessage onBuildMessage)
+        public SolutionCompiler()
         {
-            m_logger = new AllMessagesLogger(onBuildMessage);
         }
 
-        public void Start(Solution solution, string configuration, string platform, string target)
+        public void Start(Solution solution, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
         {
-            CurrentCompilation = new Model.Compilation(solution, m_logger);
-            CurrentCompilation.Start(configuration, platform, target);
+            CurrentCompilation = new Compilation(solution);
+            CurrentCompilation.Start(configuration, platform, target, maxParallelProjects, maxParallelCL, dataExtractors);
         }
     }
 }
