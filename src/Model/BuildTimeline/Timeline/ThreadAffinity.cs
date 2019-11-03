@@ -10,6 +10,7 @@ namespace Model.BuildTimeline
     public class ThreadAffinity
     {
         private static readonly int s_DefaultBaseThreadId = 0;
+        private static readonly int s_DefaultBaseOffset = 0;
         private static readonly int s_DefaultThreadIdCalculationIncrement = 1;
 
         public int ThreadId { get; private set; }
@@ -17,11 +18,13 @@ namespace Model.BuildTimeline
 
         private HashSet<int> m_invalidThreadIDs;
         private int m_baseThreadId;
+        private int m_baseOffset;
         private int m_threadIdCalculationIncrement;
 
         public ThreadAffinity()
         {
             m_baseThreadId = s_DefaultBaseThreadId;
+            m_baseOffset = s_DefaultBaseOffset;
             m_threadIdCalculationIncrement = s_DefaultThreadIdCalculationIncrement;
 
             ThreadId = m_baseThreadId;
@@ -29,14 +32,15 @@ namespace Model.BuildTimeline
             m_invalidThreadIDs = new HashSet<int>();
         }
 
-        public void SetParameters(int baseThreadId, int threadIdCalculationIncrement)
+        public void SetParameters(int baseThreadId, int baseOffset, int threadIdCalculationIncrement)
         {
             Debug.Assert(!Calculated);
 
             m_baseThreadId = baseThreadId;
+            m_baseOffset = baseOffset;
             m_threadIdCalculationIncrement = threadIdCalculationIncrement;
 
-            ThreadId = m_baseThreadId;
+            ThreadId = GetInitialThreadId();
         }
 
         public void AddInvalid(int threadID)
@@ -48,16 +52,17 @@ namespace Model.BuildTimeline
         {
             Debug.Assert(!Calculated);
 
-            // parent set an ID but it's become invalid?
+            // we've been set an ID but it's become invalid?
+            int initialThreadId = GetInitialThreadId();
             if(m_invalidThreadIDs.Contains(ThreadId))
             {
-                ThreadId = m_baseThreadId;
+                ThreadId = initialThreadId;
             }
 
             // find the first valid one
             for(int i = 0; m_invalidThreadIDs.Contains(ThreadId); ++i)
             {
-                ThreadId = m_baseThreadId + i * m_threadIdCalculationIncrement;
+                ThreadId = initialThreadId + i * m_threadIdCalculationIncrement;
             }
 
             Calculated = true;
@@ -66,15 +71,21 @@ namespace Model.BuildTimeline
         public void InheritDataFrom(ThreadAffinity other)
         {
             Debug.Assert(!Calculated);
+            Debug.Assert(other.Calculated);
 
             foreach(int invalidThreadId in other.m_invalidThreadIDs)
             {
                 m_invalidThreadIDs.Add(invalidThreadId);
             }
+            
+            m_baseThreadId = other.ThreadId;
 
-            m_baseThreadId = other.m_baseThreadId;
-            m_threadIdCalculationIncrement = other.m_threadIdCalculationIncrement;
-            ThreadId = other.ThreadId;
+            ThreadId = GetInitialThreadId();
+        }
+
+        private int GetInitialThreadId()
+        {
+            return m_baseThreadId + m_baseOffset;
         }
     }
 }

@@ -439,7 +439,7 @@ namespace Model.BuildTimeline
         {
             if(entry is TimelineBuildEntry)
             {
-                entry.ThreadAffinity.SetParameters(entry.ThreadAffinity.ThreadId, s_ParallelExecutionThreadIdIncrement);
+                entry.ThreadAffinity.SetParameters(entry.ThreadAffinity.ThreadId, 0, s_ParallelExecutionThreadIdIncrement);
             }
 
             if(entry.Parent != null)

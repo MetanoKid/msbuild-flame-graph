@@ -17,8 +17,11 @@ namespace Model.BuildTimeline
         private static readonly Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+(c1\.dll|c1xx\.dll)\).+\[(.+)\]$");
         private static readonly Regex s_CompileBackEndFinish = new Regex(@"^time\(.+(c2.dll)\).+\[(.+)\]$");
 
-        private static readonly string s_frontendDefaultName = "frontend";
-        private static readonly string s_backendDefaultName = "backend";
+        private static readonly string s_FrontendDefaultName = "frontend";
+        private static readonly string s_BackendDefaultName = "backend";
+
+        private static readonly int s_CompilationThreadAffinityOffsetFromParent = 100;
+        private static readonly int s_CompilationThreadAffinityIncrement = 1;
 
         public static void TaskCL(TimelineEntry entry)
         {
@@ -57,8 +60,10 @@ namespace Model.BuildTimeline
                     TimelineEntry compilationEntry = new TimelineEntry(matchFileStarted.Value, message.Context.NodeId, message.Timestamp, message.Timestamp);
                     compilationEntries.Add(compilationEntry);
 
+                    compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+
                     // add a front-end entry
-                    TimelineEntry frontend = new TimelineEntry(s_frontendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
+                    TimelineEntry frontend = new TimelineEntry(s_FrontendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
                     compilationEntry.AddChild(frontend);
 
                     continue;
@@ -72,14 +77,14 @@ namespace Model.BuildTimeline
                     Debug.Assert(compilationEntry != null);
 
                     // edit front-end entry
-                    TimelineEntry frontend = compilationEntry.ChildEntries.Find(_ => _.Name == s_frontendDefaultName);
+                    TimelineEntry frontend = compilationEntry.ChildEntries.Find(_ => _.Name == s_FrontendDefaultName);
                     Debug.Assert(frontend != null);
 
                     frontend.Name = matchFrontendFinished.Groups[1].Value;
                     frontend.SetEndTimestamp(message.Timestamp);
 
                     // add a back-end entry
-                    TimelineEntry backend = new TimelineEntry(s_backendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
+                    TimelineEntry backend = new TimelineEntry(s_BackendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
                     compilationEntry.AddChild(backend);
 
                     continue;
@@ -93,7 +98,7 @@ namespace Model.BuildTimeline
                     Debug.Assert(compilationEntry != null);
 
                     // edit back-end entry
-                    TimelineEntry backend = compilationEntry.ChildEntries.Find(_ => _.Name == s_backendDefaultName);
+                    TimelineEntry backend = compilationEntry.ChildEntries.Find(_ => _.Name == s_BackendDefaultName);
                     Debug.Assert(backend != null);
 
                     backend.Name = matchBackendFinished.Groups[1].Value;
@@ -105,6 +110,7 @@ namespace Model.BuildTimeline
                 }
             }
 
+            // add them all to the CL task
             compilationEntries.ForEach(timelineBuildEntry.AddChild);
         }
     }
