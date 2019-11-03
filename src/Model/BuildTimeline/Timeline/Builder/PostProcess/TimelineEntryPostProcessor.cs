@@ -83,6 +83,9 @@ namespace Model.BuildTimeline
                     frontend.Name = matchFrontendFinished.Groups[1].Value;
                     frontend.SetEndTimestamp(message.Timestamp);
 
+                    // just in case the front-end fails, update entry's timestamp
+                    compilationEntry.SetEndTimestamp(message.Timestamp);
+
                     // add a back-end entry
                     TimelineEntry backend = new TimelineEntry(s_BackendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
                     compilationEntry.AddChild(backend);
