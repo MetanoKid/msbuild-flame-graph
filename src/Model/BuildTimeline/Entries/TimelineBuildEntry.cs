@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Model.BuildTimeline
 {
@@ -28,19 +29,24 @@ namespace Model.BuildTimeline
             {
                 name = (e as ProjectStartedEvent).ProjectFile;
 
-                // find the longest common prefix between the project path and the solution path, then remove it from project's
-                int minLength = Math.Min(name.Length, buildData.SolutionPath.Length);
-                int firstDifferentCharacterIndex = 0;
-                while(firstDifferentCharacterIndex < minLength &&
-                      name[firstDifferentCharacterIndex] == buildData.SolutionPath[firstDifferentCharacterIndex])
+                // find the longest common path between project and solution, then remove it from project file path
+                string[] solutionPath = buildData.SolutionPath.Split(Path.DirectorySeparatorChar);
+                string[] projectPath = name.Split(Path.DirectorySeparatorChar);
+
+                int firstDifferenceIndex = -1;
+                int minPathSteps = Math.Min(solutionPath.Length, projectPath.Length);
+                for(int i = 0; i < minPathSteps; ++i)
                 {
-                    ++firstDifferentCharacterIndex;
+                    if(solutionPath[i] != projectPath[i])
+                    {
+                        firstDifferenceIndex = i;
+                        break;
+                    }
                 }
 
-                // only remove prefix when we've found it (and there's any character left after the removal)
-                if(firstDifferentCharacterIndex < minLength)
+                if(firstDifferenceIndex >= 0)
                 {
-                    name = name.Substring(firstDifferentCharacterIndex);
+                    name = String.Join(Path.DirectorySeparatorChar.ToString(), projectPath, firstDifferenceIndex, projectPath.Length - firstDifferenceIndex);
                 }
             }
             else if (e is TargetStartedEvent)
