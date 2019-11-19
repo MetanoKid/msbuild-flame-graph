@@ -66,7 +66,7 @@ namespace Model.BuildTimeline
 
         public void SetEndTimestamp(DateTime timestamp)
         {
-            Debug.Assert(StartTimestamp < timestamp);
+            Debug.Assert(StartTimestamp <= timestamp);
             EndTimestamp = timestamp;
         }
     }
