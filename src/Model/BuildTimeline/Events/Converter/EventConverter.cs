@@ -251,9 +251,6 @@ namespace Model.BuildTimeline
             MessageEventContext context = null;
             if(e.BuildEventContext != BuildEventContext.Invalid)
             {
-                Debug.Assert(e.BuildEventContext.NodeId != BuildEventContext.InvalidNodeId);
-                Debug.Assert(e.BuildEventContext.ProjectContextId != BuildEventContext.InvalidProjectContextId);
-
                 int? projectId = null;
                 if(e.BuildEventContext.ProjectInstanceId != BuildEventContext.InvalidProjectInstanceId)
                 {

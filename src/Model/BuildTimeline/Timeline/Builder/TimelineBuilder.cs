@@ -355,9 +355,8 @@ namespace Model.BuildTimeline
                     });
                 }
                 // part of a project?
-                else
+                else if(messageContext.ProjectId != null)
                 {
-                    Debug.Assert(messageContext.ProjectId != null);
                     Debug.Assert(messageContext.TargetId == null);
                     Debug.Assert(messageContext.TaskId == null);
 
@@ -370,6 +369,11 @@ namespace Model.BuildTimeline
                                projectContext.ContextId == messageContext.ContextId &&
                                projectContext.ProjectId == messageContext.ProjectId;
                     });
+                }
+                // part of the build itself?
+                else
+                {
+                    parentEntry = context.RootEntry;
                 }
             }
 
