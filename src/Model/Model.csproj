@@ -73,6 +73,7 @@
     <Compile Include="BuildTimeline\Events\TaskFinishedEvent.cs" />
     <Compile Include="BuildTimeline\Events\TaskStartedEvent.cs" />
     <Compile Include="BuildTimeline\DeprecatedTimeline.cs" />
+    <Compile Include="BuildTimeline\Timeline\Builder\PostProcess\TimelineEntryPostProcessor.cs" />
     <Compile Include="BuildTimeline\Timeline\ThreadAffinity.cs" />
     <Compile Include="BuildTimeline\Timeline\Timeline.cs" />
     <Compile Include="BuildTimeline\Timeline\Builder\TimelineBuilder.cs" />

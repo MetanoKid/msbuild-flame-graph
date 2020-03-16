@@ -136,7 +136,14 @@ namespace Builder
                 {
                     // build a hierarchical timeline of the events
                     Model.BuildTimeline.TimelineBuilder builder = new Model.BuildTimeline.TimelineBuilder(data);
-                    Model.BuildTimeline.Timeline timeline = builder.Build();
+
+                    // include some post-processing for CL and Link tasks
+                    Model.BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
+                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
+                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
+
+                    // build a hierarchical timeline of the events
+                    Model.BuildTimeline.Timeline timeline = builder.Build(postProcessors);
 
                     // dump it to file
                     Model.ChromeTrace trace = Model.ChromeTracingSerializer.BuildTrace(timeline);
