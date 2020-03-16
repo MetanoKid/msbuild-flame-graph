@@ -20,6 +20,7 @@ namespace Model.BuildTimeline
 
         private static readonly Regex s_LinkPass1 = new Regex(@"^Linker:(\s\(.+\))? Pass 1.+time = (.+)s .+$");
         private static readonly Regex s_LinkPass2 = new Regex(@"^Linker:(\s\(.+\))? Pass 2.+time = (.+)s .+$");
+        private static readonly Regex s_LinkCommon = new Regex(@"^Linker:(\s\(.+\))? ([^:]+).* Total time = (.+)s .+$");
 
         private static readonly string s_TaskCLSingleThreadFrontEndFinishedMessage = "Generating Code...";
         private static readonly string s_TaskCLSingleThreadFrontEndStartedMessage = "Compiling...";
@@ -293,6 +294,8 @@ namespace Model.BuildTimeline
             List<TimelineEntry> linkEntries = new List<TimelineEntry>();
             IEnumerable<MessageEvent> messages = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent)
                                                                                           .Select(_ => _ as MessageEvent);
+
+            // find Pass 1 and Pass 2
             foreach (MessageEvent message in messages)
             {
                 // Linker: Pass 1
@@ -333,6 +336,59 @@ namespace Model.BuildTimeline
                     pass2Entry.ThreadAffinity.SetParameters(pass2Entry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
 
                     continue;
+                }
+            }
+
+            // this is the function that will be applied to all common linker messages except Pass 1 and Pass 2 messages
+            Action<TimelineEntry, Tuple<MessageEvent, Match>> perCommonLinkerMessage = (parent, tuple) =>
+            {
+                MessageEvent message = tuple.Item1;
+                Match match = tuple.Item2;
+
+                double elapsedTimeFromMessage = Double.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
+                TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                DateTime startTimestamp = message.Timestamp - elapsedTime;
+
+                if (parent.ChildEntries.Count == 0 && startTimestamp < parent.StartTimestamp)
+                {
+                    startTimestamp = parent.StartTimestamp;
+                }
+                else if (parent.ChildEntries.Count > 0 && startTimestamp < parent.ChildEntries.Last().EndTimestamp)
+                {
+                    startTimestamp = parent.ChildEntries.Last().EndTimestamp;
+                }
+
+                TimelineEntry linkerEntry = new TimelineEntry(match.Groups[2].Value.Trim(), message.Context.NodeId, startTimestamp, message.Timestamp);
+                parent.AddChild(linkerEntry);
+
+                linkerEntry.ThreadAffinity.SetParameters(linkerEntry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+            };
+
+            // add entries within Pass 1
+            TimelineEntry parentEntry = linkEntries.Find(_ => _.Name == s_LinkerPass1Name);
+            if(parentEntry != null)
+            {
+                IEnumerable<Tuple<MessageEvent, Match>> messagesBeforePass1 = messages.TakeWhile(_ => !s_LinkPass1.Match(_.Message).Success)                         // take messages until Pass 1 message
+                                                                                      .Select(_ => new Tuple<MessageEvent, Match>(_, s_LinkCommon.Match(_.Message))) // match with common regex
+                                                                                      .Where(_ => _.Item2.Success);                                                  // only take positive ones
+                foreach (Tuple<MessageEvent, Match> tuple in messagesBeforePass1)
+                {
+                    perCommonLinkerMessage(parentEntry, tuple);
+                }
+            }
+
+            // add entries within Pass 2
+            parentEntry = linkEntries.Find(_ => _.Name == s_LinkerPass2Name);
+            if(parentEntry != null)
+            {
+                IEnumerable<Tuple<MessageEvent, Match>> messagesBeforePass2 = messages.SkipWhile(_ => !s_LinkPass1.Match(_.Message).Success)                         // skip all messages until Pass 1
+                                                                                      .Skip(1)                                                                       // skip Pass 1 included
+                                                                                      .TakeWhile(_ => !s_LinkPass2.Match(_.Message).Success)                         // take messages until Pass 2 message
+                                                                                      .Select(_ => new Tuple<MessageEvent, Match>(_, s_LinkCommon.Match(_.Message))) // match with common regex
+                                                                                      .Where(_ => _.Item2.Success);                                                  // only take positive ones
+                foreach (Tuple<MessageEvent, Match> tuple in messagesBeforePass2)
+                {
+                    perCommonLinkerMessage(parentEntry, tuple);
                 }
             }
 
