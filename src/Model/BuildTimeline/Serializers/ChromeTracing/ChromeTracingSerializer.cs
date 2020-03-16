@@ -15,6 +15,10 @@ namespace Model
 {
     public class ChromeTracingSerializer
     {
+        // extracted from Chrome Tracing GitHub repo (catapult-project, ColorScheme)
+        private static readonly string s_BuildSucceededColor = "good";
+        private static readonly string s_BuildFailedColor = "terrible";
+
         public static ChromeTrace BuildTrace(Timeline timeline)
         {
             Debug.Assert(timeline.PerNodeRootEntries.Length > 0);
@@ -88,14 +92,30 @@ namespace Model
                 ExtractEventsIntoTrace(child, buildStartTimestamp, events);
             }
 
-            // messages during this entry
             if(timelineBuildEntry != null)
             {
-                List<Event> messageEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent).ToList();
+                // messages within this entry
+                List<Event> messageEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _.GetType() == typeof(MessageEvent)).ToList();
                 for(int i = 0; i < messageEvents.Count(); ++i)
                 {
                     double millisecondsSinceStart = (messageEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
                     args.Add($"Message #{i}", $"[{millisecondsSinceStart:0.###} ms] {messageEvents[i].Message}");
+                }
+
+                // warnings within this entry
+                List<Event> warningEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _.GetType() == typeof(WarningEvent)).ToList();
+                for(int i = 0; i < warningEvents.Count(); ++i)
+                {
+                    double millisecondsSinceStart = (warningEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
+                    args.Add($"Warning #{i}", $"[{millisecondsSinceStart:0.###} ms] {warningEvents[i].Message}");
+                }
+
+                // errors within this entry
+                List<Event> errorEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _.GetType() == typeof(ErrorEvent)).ToList();
+                for (int i = 0; i < errorEvents.Count(); ++i)
+                {
+                    double millisecondsSinceStart = (errorEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
+                    args.Add($"Error #{i}", $"[{millisecondsSinceStart:0.###} ms] {errorEvents[i].Message}");
                 }
             }
 
@@ -113,7 +133,22 @@ namespace Model
                 ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
                 args = args,
+                cname = ExtractEventColor(timelineBuildEntry, timelineEntry)
             });
+        }
+
+        private static string ExtractEventColor(TimelineBuildEntry timelineBuildEntry, TimelineEntry timelineEntry)
+        {
+            if(timelineBuildEntry != null)
+            {
+                BuildFinishedEvent endEvent = timelineBuildEntry.BuildEntry.EndEvent as BuildFinishedEvent;
+                if (endEvent != null)
+                {
+                    return endEvent.Succeeded ? s_BuildSucceededColor : s_BuildFailedColor;
+                }
+            }
+
+            return null;
         }
 
         /*private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)

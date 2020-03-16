@@ -131,6 +131,14 @@ namespace Model.BuildTimeline
                 {
                     ProcessMessageEvent(e as MessageEvent, context);
                 }
+                else if (e is WarningEvent)
+                {
+                    ProcessMessageEvent(e as WarningEvent, context);
+                }
+                else if (e is ErrorEvent)
+                {
+                    ProcessMessageEvent(e as ErrorEvent, context);
+                }
             }
 
             return context;

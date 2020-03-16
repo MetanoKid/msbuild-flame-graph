@@ -37,8 +37,10 @@ namespace Model.BuildTimeline
             m_converter.Register<TaskStartedEventArgs>(TaskStartedEvent);
             m_converter.Register<TaskFinishedEventArgs>(TaskFinishedEvent);
 
-            // Message
+            // Messages
             m_converter.Register<BuildMessageEventArgs>(BuildMessageEvent);
+            m_converter.Register<BuildWarningEventArgs>(BuildWarningEvent);
+            m_converter.Register<BuildErrorEventArgs>(BuildErrorEvent);
         }
 
         // BuildStartedEventArgs => BuildStartedEvent
@@ -289,6 +291,122 @@ namespace Model.BuildTimeline
                 ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
                 
+                Code = e.Code,
+                ProjectFile = e.ProjectFile,
+                File = e.File,
+                Subcategory = e.Subcategory,
+                LineStart = e.LineNumber,
+                LineEnd = e.EndLineNumber,
+                ColumnStart = e.ColumnNumber,
+                ColumnEnd = e.EndColumnNumber,
+            };
+        }
+
+        // BuildWarningEventArgs => WarningEvent
+        private Event BuildWarningEvent(BuildEventArgs buildEvent)
+        {
+            BuildWarningEventArgs e = buildEvent as BuildWarningEventArgs;
+            Debug.Assert(e != null);
+
+            MessageEventContext context = null;
+            if (e.BuildEventContext != BuildEventContext.Invalid)
+            {
+                Debug.Assert(e.BuildEventContext.NodeId != BuildEventContext.InvalidNodeId);
+                Debug.Assert(e.BuildEventContext.ProjectContextId != BuildEventContext.InvalidProjectContextId);
+
+                int? projectId = null;
+                if (e.BuildEventContext.ProjectInstanceId != BuildEventContext.InvalidProjectInstanceId)
+                {
+                    projectId = e.BuildEventContext.ProjectInstanceId;
+                }
+
+                int? targetId = null;
+                if (e.BuildEventContext.TargetId != BuildEventContext.InvalidTargetId)
+                {
+                    targetId = e.BuildEventContext.TargetId;
+                }
+
+                int? taskId = null;
+                if (e.BuildEventContext.TaskId != BuildEventContext.InvalidTaskId)
+                {
+                    taskId = e.BuildEventContext.TaskId;
+                }
+
+                context = new MessageEventContext()
+                {
+                    NodeId = e.BuildEventContext.NodeId,
+                    ContextId = e.BuildEventContext.ProjectContextId,
+                    ProjectId = projectId,
+                    TargetId = targetId,
+                    TaskId = taskId,
+                };
+            }
+
+            return new WarningEvent()
+            {
+                Context = context,
+                Message = e.Message,
+                ThreadId = e.ThreadId,
+                Timestamp = e.Timestamp,
+
+                Code = e.Code,
+                ProjectFile = e.ProjectFile,
+                File = e.File,
+                Subcategory = e.Subcategory,
+                LineStart = e.LineNumber,
+                LineEnd = e.EndLineNumber,
+                ColumnStart = e.ColumnNumber,
+                ColumnEnd = e.EndColumnNumber,
+            };
+        }
+
+        // BuildErrorEventArgs => ErrorEvent
+        private Event BuildErrorEvent(BuildEventArgs buildEvent)
+        {
+            BuildErrorEventArgs e = buildEvent as BuildErrorEventArgs;
+            Debug.Assert(e != null);
+
+            MessageEventContext context = null;
+            if (e.BuildEventContext != BuildEventContext.Invalid)
+            {
+                Debug.Assert(e.BuildEventContext.NodeId != BuildEventContext.InvalidNodeId);
+                Debug.Assert(e.BuildEventContext.ProjectContextId != BuildEventContext.InvalidProjectContextId);
+
+                int? projectId = null;
+                if (e.BuildEventContext.ProjectInstanceId != BuildEventContext.InvalidProjectInstanceId)
+                {
+                    projectId = e.BuildEventContext.ProjectInstanceId;
+                }
+
+                int? targetId = null;
+                if (e.BuildEventContext.TargetId != BuildEventContext.InvalidTargetId)
+                {
+                    targetId = e.BuildEventContext.TargetId;
+                }
+
+                int? taskId = null;
+                if (e.BuildEventContext.TaskId != BuildEventContext.InvalidTaskId)
+                {
+                    taskId = e.BuildEventContext.TaskId;
+                }
+
+                context = new MessageEventContext()
+                {
+                    NodeId = e.BuildEventContext.NodeId,
+                    ContextId = e.BuildEventContext.ProjectContextId,
+                    ProjectId = projectId,
+                    TargetId = targetId,
+                    TaskId = taskId,
+                };
+            }
+
+            return new ErrorEvent()
+            {
+                Context = context,
+                Message = e.Message,
+                ThreadId = e.ThreadId,
+                Timestamp = e.Timestamp,
+
                 Code = e.Code,
                 ProjectFile = e.ProjectFile,
                 File = e.File,

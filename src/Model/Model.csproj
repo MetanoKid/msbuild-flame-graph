@@ -65,6 +65,7 @@
     <Compile Include="BuildTimeline\Events\Context\TaskEventContext.cs" />
     <Compile Include="BuildTimeline\Events\Converter\Converter.cs" />
     <Compile Include="BuildTimeline\Events\Converter\EventConverter.cs" />
+    <Compile Include="BuildTimeline\Events\ErrorEvent.cs" />
     <Compile Include="BuildTimeline\Events\MessageEvent.cs" />
     <Compile Include="BuildTimeline\Events\ProjectFinishedEvent.cs" />
     <Compile Include="BuildTimeline\Events\ProjectStartedEvent.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="BuildTimeline\Events\TaskFinishedEvent.cs" />
     <Compile Include="BuildTimeline\Events\TaskStartedEvent.cs" />
     <Compile Include="BuildTimeline\DeprecatedTimeline.cs" />
+    <Compile Include="BuildTimeline\Events\WarningEvent.cs" />
     <Compile Include="BuildTimeline\Timeline\Builder\PostProcess\TimelineEntryPostProcessor.cs" />
     <Compile Include="BuildTimeline\Timeline\ThreadAffinity.cs" />
     <Compile Include="BuildTimeline\Timeline\Timeline.cs" />
