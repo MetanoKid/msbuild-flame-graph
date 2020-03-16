@@ -141,6 +141,7 @@ namespace Builder
                     Model.BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
                     postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
                     postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
+                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskLink;
 
                     // build a hierarchical timeline of the events
                     Model.BuildTimeline.Timeline timeline = builder.Build(postProcessors);

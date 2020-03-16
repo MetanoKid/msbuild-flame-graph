@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,11 +18,17 @@ namespace Model.BuildTimeline
         private static readonly Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+(c1\.dll|c1xx\.dll)\).+\[(.+)\]$");
         private static readonly Regex s_CompileBackEndFinish = new Regex(@"^time\(.+(c2.dll)\).+\[(.+)\]$");
 
+        private static readonly Regex s_LinkPass1 = new Regex(@"^Linker:(\s\(.+\))? Pass 1.+time = (.+)s .+$");
+        private static readonly Regex s_LinkPass2 = new Regex(@"^Linker:(\s\(.+\))? Pass 2.+time = (.+)s .+$");
+
         private static readonly string s_TaskCLSingleThreadFrontEndFinishedMessage = "Generating Code...";
         private static readonly string s_TaskCLSingleThreadFrontEndStartedMessage = "Compiling...";
 
         private static readonly string s_FrontendDefaultName = "frontend";
         private static readonly string s_BackendDefaultName = "backend";
+
+        private static readonly string s_LinkerPass1Name = "Pass 1";
+        private static readonly string s_LinkerPass2Name = "Pass 2";
 
         private static readonly int s_CompilationThreadAffinityOffsetFromParent = 100;
         private static readonly int s_CompilationThreadAffinityIncrement = 1;
@@ -245,6 +252,92 @@ namespace Model.BuildTimeline
 
             // add them all to the CL task
             compilationEntries.ForEach(timelineBuildEntry.AddChild);
+        }
+
+        private static bool IsTaskLink(TimelineEntry entry)
+        {
+            // only take TimelineBuildEntry into account
+            TimelineBuildEntry timelineBuildEntry = entry as TimelineBuildEntry;
+            if (timelineBuildEntry == null)
+            {
+                return false;
+            }
+
+            // we're looking for Task ones
+            TaskStartedEvent taskStartedEvent = timelineBuildEntry.BuildEntry.StartEvent as TaskStartedEvent;
+            if (taskStartedEvent == null)
+            {
+                return false;
+            }
+
+            // and only the ones called "Link"
+            if (taskStartedEvent.TaskName != "Link")
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static void TaskLink(TimelineEntry entry)
+        {
+            if(!IsTaskLink(entry))
+            {
+                return;
+            }
+
+            TimelineBuildEntry timelineBuildEntry = entry as TimelineBuildEntry;
+
+            // because these messages aren't related to each other in any way other than parsing messages,
+            // we'll be keeping a list of timeline entries which will open/close as the messages are processed
+            List<TimelineEntry> linkEntries = new List<TimelineEntry>();
+            IEnumerable<MessageEvent> messages = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent)
+                                                                                          .Select(_ => _ as MessageEvent);
+            foreach (MessageEvent message in messages)
+            {
+                // Linker: Pass 1
+                Match matchLinkerPass1 = s_LinkPass1.Match(message.Message);
+                if(matchLinkerPass1.Success)
+                {
+                    double elapsedTimeFromMessage = Double.Parse(matchLinkerPass1.Groups[2].Value, CultureInfo.InvariantCulture);
+                    TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                    DateTime startTimestamp = message.Timestamp - elapsedTime;
+                    if(startTimestamp < timelineBuildEntry.StartTimestamp)
+                    {
+                        startTimestamp = timelineBuildEntry.StartTimestamp;
+                    }
+
+                    TimelineEntry pass1Entry = new TimelineEntry(s_LinkerPass1Name, message.Context.NodeId, startTimestamp, message.Timestamp);
+                    linkEntries.Add(pass1Entry);
+
+                    pass1Entry.ThreadAffinity.SetParameters(pass1Entry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+
+                    continue;
+                }
+
+                // Linker: Pass 2
+                Match matchLinkerPass2 = s_LinkPass2.Match(message.Message);
+                if(matchLinkerPass2.Success)
+                {
+                    double elapsedTimeFromMessage = Double.Parse(matchLinkerPass2.Groups[2].Value, CultureInfo.InvariantCulture);
+                    TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                    DateTime startTimestamp = message.Timestamp - elapsedTime;
+                    if(linkEntries.Count > 0 && startTimestamp < linkEntries.Last().EndTimestamp)
+                    {
+                        startTimestamp = linkEntries.Last().EndTimestamp;
+                    }
+
+                    TimelineEntry pass2Entry = new TimelineEntry(s_LinkerPass2Name, message.Context.NodeId, startTimestamp, message.Timestamp);
+                    linkEntries.Add(pass2Entry);
+
+                    pass2Entry.ThreadAffinity.SetParameters(pass2Entry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+
+                    continue;
+                }
+            }
+
+            // add them all to the Link task
+            linkEntries.ForEach(timelineBuildEntry.AddChild);
         }
     }
 }
