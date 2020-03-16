@@ -71,24 +71,49 @@
                 <Style TargetType="ListViewItem">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Type}" Value="BuildStartedEventArgs">
-                            <Setter Property="Foreground" Value="Green" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="Background" Value="Black" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Type}" Value="BuildFinishedEventArgs">
-                            <Setter Property="Foreground" Value="Green" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="Background" Value="Black" />
                         </DataTrigger>
 
                         <DataTrigger Binding="{Binding Type}" Value="ProjectStartedEventArgs">
-                            <Setter Property="Foreground" Value="Blue" />
+                            <Setter Property="Foreground" Value="Green" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Type}" Value="ProjectFinishedEventArgs">
-                            <Setter Property="Foreground" Value="Blue" />
+                            <Setter Property="Foreground" Value="Green" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding Type}" Value="TargetStartedEventArgs">
+                            <Setter Property="Foreground" Value="#2D4C14" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="TargetFinishedEventArgs">
+                            <Setter Property="Foreground" Value="#2D4C14" />
                         </DataTrigger>
 
                         <DataTrigger Binding="{Binding Type}" Value="TaskStartedEventArgs">
-                            <Setter Property="Foreground" Value="Gray" />
+                            <Setter Property="Foreground" Value="#609732" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Type}" Value="TaskFinishedEventArgs">
+                            <Setter Property="Foreground" Value="#609732" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding Type}" Value="BuildMessageEventArgs">
                             <Setter Property="Foreground" Value="Gray" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding Type}" Value="BuildWarningEventArgs">
+                            <Setter Property="Foreground" Value="Black" />
+                            <Setter Property="Background" Value="Yellow" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding Type}" Value="BuildErrorEventArgs">
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="Background" Value="Red" />
+                            <Setter Property="FontWeight" Value="Bold" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
