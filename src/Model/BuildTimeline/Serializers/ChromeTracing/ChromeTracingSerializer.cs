@@ -41,12 +41,6 @@ namespace Model
                 }
             }
 
-            // dump source file compilations
-            /*foreach(var parallelFileCompilation in timeline.ParallelFileCompilations)
-            {
-                ExtractParallelFileCompilationIntoTrace(parallelFileCompilation, buildStartTimestamp, trace.traceEvents);
-            }*/
-
             return trace;
         }
 
@@ -150,101 +144,6 @@ namespace Model
 
             return null;
         }
-
-        /*private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)
-        {
-            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext != null);
-            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId != Microsoft.Build.Framework.BuildEventContext.InvalidNodeId);
-
-            HashSet<Tuple<int, int>> registeredTIDs = new HashSet<Tuple<int, int>>();
-
-            int pid = parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId;
-            foreach (var fileCompilation in parallelFileCompilation.Compilations)
-            {
-                int tid = parallelFileCompilation.Parent.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset +
-                          fileCompilation.ThreadId + 1;
-                registeredTIDs.Add(new Tuple<int, int>(tid, fileCompilation.ThreadId));
-
-                // start event
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'B',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                    name = fileCompilation.FileName,
-                });
-
-                // frontend compilation
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'X',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                    dur = (fileCompilation.FrontEndFinishTime - fileCompilation.StartTimestamp).TotalMilliseconds * 1000.0f,
-                    name = fileCompilation.FrontEndDLL,
-                    args = new Dictionary<string, string> {
-                        { "/Bt+", fileCompilation.FrontEndFinishMessage }
-                    },
-                    cname = s_CompilerFrontendColor
-                });
-
-                // backend compilation
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'X',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.FrontEndFinishTime - startTimestamp).TotalMilliseconds * 1000.0,
-                    dur = (fileCompilation.BackEndFinishTime - fileCompilation.FrontEndFinishTime).TotalMilliseconds * 1000.0f,
-                    name = "c2.dll",
-                    args = new Dictionary<string, string> {
-                        { "/Bt+", fileCompilation.BackEndFinishMessage }
-                    },
-                    cname = s_CompilerBackendColor
-                });
-
-                // end event
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'E',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.EndTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                    name = fileCompilation.FileName,
-                });
-            }
-
-            // TODO: move these to its own method
-            // name of these pid+tid (tuple contains <offsetted tid, real tid>
-            foreach(Tuple<int, int> tidPair in registeredTIDs)
-            {
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'M',
-                    name = "thread_name",
-                    pid = pid,
-                    tid = tidPair.Item1,
-                    args = new Dictionary<string, string> {
-                        { "name", $"Thread {parallelFileCompilation.Parent.ThreadAffinity.ThreadId}, CL {tidPair.Item2}" }
-                    },
-                });
-
-                // because we've added a new name it will be sorted by name
-                // we want to go back to sort them by offsetted tid
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'M',
-                    name = "thread_sort_index",
-                    pid = pid,
-                    tid = tidPair.Item1,
-                    args = new Dictionary<string, string> {
-                        { "sort_index", tidPair.Item1.ToString() }
-                    }
-                });
-            }
-        }*/
 
         private static void ExtractProcessNamesIntoTrace(Timeline timeline, List<ChromeTracingEvent> events)
         {
