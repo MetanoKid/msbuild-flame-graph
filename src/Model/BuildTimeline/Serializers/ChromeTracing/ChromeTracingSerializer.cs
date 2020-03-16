@@ -15,6 +15,10 @@ namespace Model
 {
     public class ChromeTracingSerializer
     {
+        // extracted from Chrome Tracing GitHub repo (catapult-project, ColorScheme)
+        private static readonly string s_BuildSucceededColor = "good";
+        private static readonly string s_BuildFailedColor = "terrible";
+
         public static ChromeTrace BuildTrace(Timeline timeline)
         {
             Debug.Assert(timeline.PerNodeRootEntries.Length > 0);
@@ -129,7 +133,22 @@ namespace Model
                 ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
                 args = args,
+                cname = ExtractEventColor(timelineBuildEntry, timelineEntry)
             });
+        }
+
+        private static string ExtractEventColor(TimelineBuildEntry timelineBuildEntry, TimelineEntry timelineEntry)
+        {
+            if(timelineBuildEntry != null)
+            {
+                BuildFinishedEvent endEvent = timelineBuildEntry.BuildEntry.EndEvent as BuildFinishedEvent;
+                if (endEvent != null)
+                {
+                    return endEvent.Succeeded ? s_BuildSucceededColor : s_BuildFailedColor;
+                }
+            }
+
+            return null;
         }
 
         /*private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)
