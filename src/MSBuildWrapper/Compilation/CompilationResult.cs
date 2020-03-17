@@ -1,4 +1,4 @@
-﻿namespace Model
+﻿namespace MSBuildWrapper
 {
     public enum CompilationResult
     {

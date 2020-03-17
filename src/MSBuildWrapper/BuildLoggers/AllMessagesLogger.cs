@@ -1,7 +1,7 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Model
+namespace MSBuildWrapper
 {
     public abstract class AllMessagesLogger : Logger
     {

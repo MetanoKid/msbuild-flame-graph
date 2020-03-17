@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using MSBuildWrapper;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -77,13 +78,13 @@ namespace Builder
             {
                 m_viewModel.BuildMessages.Clear();
 
-                List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+                List<CompilationDataExtractor> dataExtractors = new List<CompilationDataExtractor>();
 
                 // extractor that redirects messages to UI
-                dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(window.OnBuildMessage));
+                dataExtractors.Add(new CallbackPerMessageDataExtractor(window.OnBuildMessage));
 
                 // extractor that accumulates all raw messages then converts them into a custom representation
-                Model.CustomEventFormatExtractor eventsExtractor = new Model.CustomEventFormatExtractor();
+                CustomEventFormatExtractor eventsExtractor = new CustomEventFormatExtractor();
                 dataExtractors.Add(eventsExtractor);
 
                 // asynchronously build the solution

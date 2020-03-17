@@ -3,7 +3,7 @@ using BuildTimeline;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Model
+namespace MSBuildWrapper
 {    
     public class CustomEventFormatExtractor : CompilationDataExtractor
     {

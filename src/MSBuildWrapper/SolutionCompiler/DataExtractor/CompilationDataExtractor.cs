@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Utilities;
 
-namespace Model
+namespace MSBuildWrapper
 {
     public abstract class CompilationDataExtractor
     {

@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Model;
+using System.Collections.Generic;
 
-namespace Model
+namespace MSBuildWrapper
 {
     public class SolutionCompiler : PropertyChangeNotifier
     {

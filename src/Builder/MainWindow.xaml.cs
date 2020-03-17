@@ -19,7 +19,7 @@ namespace Builder
             DataContext = m_viewModel;
         }
 
-        public void OnBuildMessage(Model.BuildMessage message)
+        public void OnBuildMessage(MSBuildWrapper.BuildMessage message)
         {
             App.Current.Dispatcher.InvokeAsync(() => {
                 m_viewModel.BuildMessages.Add(message);

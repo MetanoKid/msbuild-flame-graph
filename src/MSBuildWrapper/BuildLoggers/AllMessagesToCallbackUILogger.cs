@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Framework;
 
-namespace Model
+namespace MSBuildWrapper
 {
     // callback to execute with the intermediate UI message data
     public delegate void OnBuildMessage(BuildMessage message);

@@ -98,6 +98,9 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <Content Include="Resources\ExtraCompilerLinkerOptions.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -110,6 +113,10 @@
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{c49c74fd-e1c2-4310-9190-9996177902cd}</Project>
       <Name>Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MSBuildWrapper\MSBuildWrapper.csproj">
+      <Project>{c8ac65d0-ee58-4cc1-880c-f97d78dff83f}</Project>
+      <Name>MSBuildWrapper</Name>
     </ProjectReference>
     <ProjectReference Include="..\TimelineSerializer\TimelineSerializer.csproj">
       <Project>{7d335775-8d76-45b4-a035-695c88eb0134}</Project>

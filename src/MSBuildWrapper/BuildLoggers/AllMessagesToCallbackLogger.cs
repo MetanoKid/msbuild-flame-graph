@@ -1,4 +1,4 @@
-﻿namespace Model
+﻿namespace MSBuildWrapper
 {
     // logger that executes a callback when an event is logged
     public abstract class AllMessagesToCallbackLogger<T> : AllMessagesLogger

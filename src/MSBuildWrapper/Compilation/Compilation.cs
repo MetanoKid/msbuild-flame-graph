@@ -1,11 +1,12 @@
 ﻿using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
+using Model;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Model
+namespace MSBuildWrapper
 {
     public class Compilation : PropertyChangeNotifier
     {

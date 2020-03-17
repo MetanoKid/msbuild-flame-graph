@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Framework;
 
-namespace Model
+namespace MSBuildWrapper
 {
     // callback to execute with the raw BuildEventData message
     public delegate void OnBuildEventRawCallback(BuildEventArgs e);

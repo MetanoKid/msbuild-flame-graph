@@ -3,7 +3,7 @@ using System;
 
 // TODO: refactor this class so it's UI-only
 
-namespace Model
+namespace MSBuildWrapper
 {
     public class BuildMessage
     {
