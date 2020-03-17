@@ -1,14 +1,7 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Threading.Tasks;
+﻿using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Diagnostics;
-using System.IO;
-using Newtonsoft.Json;
 
 namespace Builder
 {
@@ -26,7 +19,7 @@ namespace Builder
             DataContext = m_viewModel;
         }
 
-        public void OnBuildMessage(Model.BuildMessage message)
+        public void OnBuildMessage(MSBuildWrapper.BuildMessage message)
         {
             App.Current.Dispatcher.InvokeAsync(() => {
                 m_viewModel.BuildMessages.Add(message);

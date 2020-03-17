@@ -1,14 +1,10 @@
 ﻿using Model;
-using System;
-using System.Collections.Generic;
+using MSBuildWrapper;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Builder
 {
-    public class BuilderViewModel : Model.PropertyChangeNotifier
+    public class BuilderViewModel : PropertyChangeNotifier
     {
         public Commands Commands { get; private set; }
 
@@ -40,7 +36,7 @@ namespace Builder
             }
         }
 
-        public ObservableCollection<Model.BuildMessage> BuildMessages
+        public ObservableCollection<BuildMessage> BuildMessages
         {
             get
             {
@@ -84,7 +80,7 @@ namespace Builder
 
         private Solution m_solution;
         private SolutionCompiler m_solutionCompiler;
-        private ObservableCollection<Model.BuildMessage> m_buildMessages;
+        private ObservableCollection<BuildMessage> m_buildMessages;
         private Solution.ConfigurationPlatform m_selectedConfigurationPlatform;
         private string m_buildTarget;
 
