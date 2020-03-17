@@ -31,9 +31,6 @@ namespace Model.BuildTimeline
         private static readonly string s_LinkerPass1Name = "Pass 1";
         private static readonly string s_LinkerPass2Name = "Pass 2";
 
-        private static readonly int s_CompilationThreadAffinityOffsetFromParent = 100;
-        private static readonly int s_CompilationThreadAffinityIncrement = 1;
-
         private static bool IsTaskCL(TimelineEntry entry)
         {
             // only take TimelineBuildEntry into account
@@ -104,7 +101,7 @@ namespace Model.BuildTimeline
                         TimelineEntry compilationEntry = new TimelineEntry(matchFileStarted.Value, message.Context.NodeId, message.Timestamp, message.Timestamp);
                         compilationEntries.Add(compilationEntry);
 
-                        compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+                        compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
                         // add a front-end entry
                         TimelineEntry frontend = new TimelineEntry(s_FrontendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
@@ -149,7 +146,7 @@ namespace Model.BuildTimeline
                         TimelineEntry compilationEntry = new TimelineEntry(matchBackendFinished.Groups[2].Value.Split('\\').Last(), message.Context.NodeId, entryBackendCompilationStartTimestamp, message.Timestamp);
                         compilationEntries.Add(compilationEntry);
 
-                        compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+                        compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
                         // add a back-end entry
                         TimelineEntry backend = new TimelineEntry(matchBackendFinished.Groups[1].Value, message.Context.NodeId, entryBackendCompilationStartTimestamp, message.Timestamp);
@@ -198,7 +195,7 @@ namespace Model.BuildTimeline
                     TimelineEntry compilationEntry = new TimelineEntry(matchFileStarted.Value, message.Context.NodeId, message.Timestamp, message.Timestamp);
                     compilationEntries.Add(compilationEntry);
 
-                    compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+                    compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
                     // add a front-end entry
                     TimelineEntry frontend = new TimelineEntry(s_FrontendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
@@ -313,7 +310,7 @@ namespace Model.BuildTimeline
                     TimelineEntry pass1Entry = new TimelineEntry(s_LinkerPass1Name, message.Context.NodeId, startTimestamp, message.Timestamp);
                     linkEntries.Add(pass1Entry);
 
-                    pass1Entry.ThreadAffinity.SetParameters(pass1Entry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+                    pass1Entry.ThreadAffinity.SetParameters(pass1Entry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
                     continue;
                 }
@@ -333,7 +330,7 @@ namespace Model.BuildTimeline
                     TimelineEntry pass2Entry = new TimelineEntry(s_LinkerPass2Name, message.Context.NodeId, startTimestamp, message.Timestamp);
                     linkEntries.Add(pass2Entry);
 
-                    pass2Entry.ThreadAffinity.SetParameters(pass2Entry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
+                    pass2Entry.ThreadAffinity.SetParameters(pass2Entry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
                     continue;
                 }

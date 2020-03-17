@@ -9,6 +9,10 @@ namespace Model.BuildTimeline
 {
     public class ThreadAffinity
     {
+        public static readonly int s_OffsetMSBuildEntries = 1000;
+        public static readonly int s_OffsetFromParentPostProcessedEntries = 100;
+        public static readonly int s_OffsetFromParentPostProcessedEntriesIncrement = 1;
+
         private static readonly int s_DefaultBaseThreadId = 0;
         private static readonly int s_DefaultBaseOffset = 0;
         private static readonly int s_DefaultThreadIdCalculationIncrement = 1;

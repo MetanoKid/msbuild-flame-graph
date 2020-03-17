@@ -59,9 +59,6 @@ namespace Model.BuildTimeline
 
     public class TimelineBuilder
     {
-        // when calculating parallel executions, use this as the separation in ThreadId between two entries
-        private static readonly int s_ParallelExecutionThreadIdIncrement = 1000;
-
         private BuildData m_buildData;
 
         public TimelineBuilder(BuildData buildData)
@@ -447,7 +444,7 @@ namespace Model.BuildTimeline
         {
             if(entry is TimelineBuildEntry)
             {
-                entry.ThreadAffinity.SetParameters(entry.ThreadAffinity.ThreadId, 0, s_ParallelExecutionThreadIdIncrement);
+                entry.ThreadAffinity.SetParameters(entry.ThreadAffinity.ThreadId, 0, ThreadAffinity.s_OffsetMSBuildEntries);
             }
 
             if(entry.Parent != null)
