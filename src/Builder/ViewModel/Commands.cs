@@ -60,6 +60,7 @@ namespace Builder
             {
                 try
                 {
+                    m_viewModel.BuildTarget = "";
                     m_viewModel.LoadSolution(dialog.FileName);
                 }
                 catch (ArgumentException ex)
