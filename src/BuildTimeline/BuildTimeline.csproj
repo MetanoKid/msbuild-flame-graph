@@ -30,6 +30,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,13 +41,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileCompilation.cs" />
-    <Compile Include="ParallelFileCompilation.cs" />
+    <Compile Include="BuildData.cs" />
+    <Compile Include="Entries\BuildEntry.cs" />
+    <Compile Include="Entries\TimelineBuildEntry.cs" />
+    <Compile Include="Entries\TimelineEntry.cs" />
+    <Compile Include="Events\BuildFinishedEvent.cs" />
+    <Compile Include="Events\BuildStartedEvent.cs" />
+    <Compile Include="Events\Context\EventContext.cs" />
+    <Compile Include="Events\Context\MessageEventContext.cs" />
+    <Compile Include="Events\Context\ProjectEventContext.cs" />
+    <Compile Include="Events\Context\TargetEventContext.cs" />
+    <Compile Include="Events\Context\TaskEventContext.cs" />
+    <Compile Include="Events\Converter\Converter.cs" />
+    <Compile Include="Events\Converter\EventConverter.cs" />
+    <Compile Include="Events\ErrorEvent.cs" />
+    <Compile Include="Events\Event.cs" />
+    <Compile Include="Events\MessageEvent.cs" />
+    <Compile Include="Events\ProjectFinishedEvent.cs" />
+    <Compile Include="Events\ProjectStartedEvent.cs" />
+    <Compile Include="Events\TargetFinishedEvent.cs" />
+    <Compile Include="Events\TargetStartedEvent.cs" />
+    <Compile Include="Events\TaskFinishedEvent.cs" />
+    <Compile Include="Events\TaskStartedEvent.cs" />
+    <Compile Include="Events\WarningEvent.cs" />
+    <Compile Include="Serializers\ChromeTracing\ChromeTracingEvent.cs" />
+    <Compile Include="Serializers\ChromeTracing\ChromeTracingSerializer.cs" />
+    <Compile Include="Timeline\Builder\PostProcess\TimelineEntryPostProcessor.cs" />
+    <Compile Include="Timeline\Builder\TimelineBuilder.cs" />
+    <Compile Include="Timeline\ThreadAffinity.cs" />
+    <Compile Include="Timeline\Timeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BuildTimeline\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

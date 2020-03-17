@@ -1,21 +1,10 @@
 ﻿using Microsoft.Build.Framework;
-using Model.BuildTimeline;
+using BuildTimeline;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Model
-{
-    public class BuildData
-    {
-        public string SolutionPath { get; set; }
-        public string Configuration { get; set; }
-        public string Platform { get; set; }
-        public string Target { get; set; }
-        public int MaxParallelProjects { get; set; }
-        public int MaxParallelCLPerProject { get; set; }
-        public List<Event> Events;
-    }
-    
+{    
     public class CustomEventFormatExtractor : CompilationDataExtractor
     {
         private BuildData m_buildData;

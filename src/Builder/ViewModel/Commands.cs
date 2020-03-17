@@ -121,7 +121,7 @@ namespace Builder
             {
                 // load data from file
                 string eventsJSON = File.ReadAllText(openEventsFileDialog.FileName);
-                Model.BuildData data = JsonConvert.DeserializeObject<Model.BuildData>(eventsJSON, new JsonSerializerSettings()
+                BuildTimeline.BuildData data = JsonConvert.DeserializeObject<BuildTimeline.BuildData>(eventsJSON, new JsonSerializerSettings()
                 {
                     TypeNameHandling = TypeNameHandling.Auto
                 });
@@ -133,16 +133,16 @@ namespace Builder
                 if(saveTimelineFileDialog.ShowDialog() == true)
                 {
                     // build a hierarchical timeline of the events
-                    Model.BuildTimeline.TimelineBuilder builder = new Model.BuildTimeline.TimelineBuilder(data);
+                    BuildTimeline.TimelineBuilder builder = new BuildTimeline.TimelineBuilder(data);
 
                     // include some post-processing for CL and Link tasks
-                    Model.BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
-                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
-                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
-                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskLink;
+                    BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
 
                     // build a hierarchical timeline of the events
-                    Model.BuildTimeline.Timeline timeline = builder.Build(postProcessors);
+                    BuildTimeline.Timeline timeline = builder.Build(postProcessors);
 
                     // dump it to file
                     Model.ChromeTrace trace = Model.ChromeTracingSerializer.BuildTrace(timeline);

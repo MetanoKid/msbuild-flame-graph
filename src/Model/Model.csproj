@@ -49,36 +49,6 @@
     <Compile Include="BuildLoggers\AllMessagesToCallbackRawLogger.cs" />
     <Compile Include="BuildLoggers\AllMessagesToCallbackUILogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
-    <Compile Include="BuildTimeline\Entries\BuildEntry.cs" />
-    <Compile Include="BuildTimeline\Entries\TimelineBuildEntry.cs" />
-    <Compile Include="BuildTimeline\Entries\TimelineEntry.cs" />
-    <Compile Include="BuildTimeline\Events\BuildFinishedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\BuildStartedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\Context\MessageEventContext.cs" />
-    <Compile Include="BuildTimeline\Events\Context\ProjectEventContext.cs" />
-    <Compile Include="BuildTimeline\Events\Context\TargetEventContext.cs" />
-    <Compile Include="BuildTimeline\Events\Context\TaskEventContext.cs" />
-    <Compile Include="BuildTimeline\Events\Converter\Converter.cs" />
-    <Compile Include="BuildTimeline\Events\Converter\EventConverter.cs" />
-    <Compile Include="BuildTimeline\Events\ErrorEvent.cs" />
-    <Compile Include="BuildTimeline\Events\MessageEvent.cs" />
-    <Compile Include="BuildTimeline\Events\ProjectFinishedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\ProjectStartedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\TargetFinishedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\TargetStartedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\TaskFinishedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\TaskStartedEvent.cs" />
-    <Compile Include="BuildTimeline\Events\WarningEvent.cs" />
-    <Compile Include="BuildTimeline\Timeline\Builder\PostProcess\TimelineEntryPostProcessor.cs" />
-    <Compile Include="BuildTimeline\Timeline\ThreadAffinity.cs" />
-    <Compile Include="BuildTimeline\Timeline\Timeline.cs" />
-    <Compile Include="BuildTimeline\Timeline\Builder\TimelineBuilder.cs" />
-    <Compile Include="BuildTimeline\Events\Event.cs" />
-    <Compile Include="BuildTimeline\Events\Context\EventContext.cs" />
-    <Compile Include="BuildTimeline\FileCompilation.cs" />
-    <Compile Include="BuildTimeline\ParallelFileCompilation.cs" />
-    <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingEvent.cs" />
-    <Compile Include="BuildTimeline\Serializers\ChromeTracing\ChromeTracingSerializer.cs" />
     <Compile Include="Compilation\Compilation.cs" />
     <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\CompilationStatus.cs" />
@@ -101,7 +71,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\BuildTimeline\BuildTimeline.csproj">
+      <Project>{19317603-ecda-4cb8-b781-619cf69f2979}</Project>
+      <Name>BuildTimeline</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
