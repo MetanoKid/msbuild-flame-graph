@@ -188,6 +188,19 @@ namespace Model
 
             foreach (Tuple<int, int, int> tidTuple in registeredTIDs)
             {
+                string threadName = $"Thread {tidTuple.Item3}";
+
+                // is it extracted from MSBuild directly?
+                if(tidTuple.Item3 % ThreadAffinity.s_OffsetMSBuildEntries == 0)
+                {
+                    threadName = $"MSBuild timeline {tidTuple.Item3 / ThreadAffinity.s_OffsetMSBuildEntries}";
+                }
+                // is it extracted from the post-process?
+                else
+                {
+                    threadName = $"Post-processed timeline {tidTuple.Item3 / ThreadAffinity.s_OffsetMSBuildEntries}-{tidTuple.Item3 % ThreadAffinity.s_OffsetFromParentPostProcessedEntries}";
+                }
+
                 events.Add(new ChromeTracingEvent()
                 {
                     ph = 'M',
@@ -195,7 +208,7 @@ namespace Model
                     pid = tidTuple.Item1,
                     tid = tidTuple.Item2,
                     args = new Dictionary<string, string> {
-                        { "name", $"Thread {tidTuple.Item3}" }
+                        { "name", threadName }
                     },
                 });
 
