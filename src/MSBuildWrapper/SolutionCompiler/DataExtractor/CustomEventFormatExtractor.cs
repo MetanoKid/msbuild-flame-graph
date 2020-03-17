@@ -33,6 +33,7 @@ namespace MSBuildWrapper
             m_buildData = new BuildData()
             {
                 SolutionPath = data.SolutionPath,
+                Project = data.Project,
                 Configuration = data.Configuration,
                 Platform = data.Platform,
                 Target = data.Target,

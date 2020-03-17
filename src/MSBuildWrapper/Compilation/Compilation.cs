@@ -50,11 +50,15 @@ namespace MSBuildWrapper
             m_solution = solution;
         }
 
-        public void Start(string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
+        public void Start(string project, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
         {
             Debug.Assert(Status == CompilationStatus.NotStarted);
 
             Status = CompilationStatus.InProgress;
+
+            // MSBuild uses "Project:Target" syntax when building a single project, "Target" for full solution
+            bool projectSelected = project != SolutionCompiler.s_CompileFullSolution;
+            string projectTargetToBuild = projectSelected ? $"{project}:{target}" : target;
 
             // build the data to invoke MSBuild
             ProjectCollection projectCollection = new ProjectCollection();
@@ -75,15 +79,16 @@ namespace MSBuildWrapper
             dataExtractors.ForEach(e => e.BeforeBuildStarted(new CompilationDataExtractor.BuildStartedData()
             {
                 SolutionPath = m_solution.Path,
+                Project = projectSelected ? project : null,
                 Configuration = configuration,
                 Platform = platform,
-                Target = target,
+                Target = projectTargetToBuild,
                 MaxParallelProjects = parameters.MaxNodeCount,
                 MaxParallelCLPerProject = maxParallelCL,
             }));
 
             // this represents our build
-            BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { target }, null);
+            BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { projectTargetToBuild }, null);
 
             // this call is synchronous, so it will stop here until build ends
             BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, data);

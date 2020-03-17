@@ -5,6 +5,8 @@ namespace MSBuildWrapper
 {
     public class SolutionCompiler : PropertyChangeNotifier
     {
+        public static readonly string s_CompileFullSolution = "Full solution";
+
         public Compilation CurrentCompilation
         {
             get
@@ -25,10 +27,10 @@ namespace MSBuildWrapper
         {
         }
 
-        public void Start(Solution solution, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
+        public void Start(Solution solution, string project, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
         {
             CurrentCompilation = new Compilation(solution);
-            CurrentCompilation.Start(configuration, platform, target, maxParallelProjects, maxParallelCL, dataExtractors);
+            CurrentCompilation.Start(project, configuration, platform, target, maxParallelProjects, maxParallelCL, dataExtractors);
         }
     }
 }

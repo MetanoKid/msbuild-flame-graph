@@ -8,6 +8,7 @@ namespace MSBuildWrapper
         public class BuildStartedData
         {
             public string SolutionPath { get; set; }
+            public string Project { get; set; }
             public string Configuration { get; set; }
             public string Platform { get; set; }
             public string Target { get; set; }
