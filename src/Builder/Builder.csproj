@@ -111,6 +111,10 @@
       <Project>{c49c74fd-e1c2-4310-9190-9996177902cd}</Project>
       <Name>Model</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TimelineSerializer\TimelineSerializer.csproj">
+      <Project>{7d335775-8d76-45b4-a035-695c88eb0134}</Project>
+      <Name>TimelineSerializer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

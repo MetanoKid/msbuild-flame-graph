@@ -145,7 +145,7 @@ namespace Builder
                     BuildTimeline.Timeline timeline = builder.Build(postProcessors);
 
                     // dump it to file
-                    Model.ChromeTrace trace = Model.ChromeTracingSerializer.BuildTrace(timeline);
+                    TimelineSerializer.ChromeTrace trace = TimelineSerializer.ChromeTracingSerializer.BuildTrace(timeline);
                     string json = JsonConvert.SerializeObject(trace,
                         Formatting.Indented,
                         new JsonSerializerSettings()

@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "src\Model\Model.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildTimeline", "src\BuildTimeline\BuildTimeline.csproj", "{19317603-ECDA-4CB8-B781-619CF69F2979}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimelineSerializer", "src\TimelineSerializer\TimelineSerializer.csproj", "{7D335775-8D76-45B4-A035-695C88EB0134}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{19317603-ECDA-4CB8-B781-619CF69F2979}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19317603-ECDA-4CB8-B781-619CF69F2979}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19317603-ECDA-4CB8-B781-619CF69F2979}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D335775-8D76-45B4-A035-695C88EB0134}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D335775-8D76-45B4-A035-695C88EB0134}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D335775-8D76-45B4-A035-695C88EB0134}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D335775-8D76-45B4-A035-695C88EB0134}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
