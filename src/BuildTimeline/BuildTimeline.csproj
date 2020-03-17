@@ -30,7 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -52,8 +51,6 @@
     <Compile Include="Events\Context\ProjectEventContext.cs" />
     <Compile Include="Events\Context\TargetEventContext.cs" />
     <Compile Include="Events\Context\TaskEventContext.cs" />
-    <Compile Include="Events\Converter\Converter.cs" />
-    <Compile Include="Events\Converter\EventConverter.cs" />
     <Compile Include="Events\ErrorEvent.cs" />
     <Compile Include="Events\Event.cs" />
     <Compile Include="Events\MessageEvent.cs" />

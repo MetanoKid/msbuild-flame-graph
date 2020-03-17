@@ -1,7 +1,8 @@
-﻿using Microsoft.Build.Framework;
+﻿using BuildTimeline;
+using Microsoft.Build.Framework;
 using System.Diagnostics;
 
-namespace BuildTimeline
+namespace Model
 {
     public class EventConverter
     {

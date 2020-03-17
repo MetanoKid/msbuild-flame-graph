@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BuildTimeline
+namespace Model
 {
     public class Converter<InputType, OutputType>
     {

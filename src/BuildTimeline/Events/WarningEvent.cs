@@ -1,6 +1,6 @@
 ﻿namespace BuildTimeline
 {
-    class WarningEvent : MessageEvent
+    public class WarningEvent : MessageEvent
     {
     }
 }
