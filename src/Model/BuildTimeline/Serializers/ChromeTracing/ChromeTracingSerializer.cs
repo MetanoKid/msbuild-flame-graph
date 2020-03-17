@@ -15,7 +15,9 @@ namespace Model
 {
     public class ChromeTracingSerializer
     {
-        private static int s_ParallelProjectThreadOffset = 100;
+        // extracted from Chrome Tracing GitHub repo (catapult-project, ColorScheme)
+        private static readonly string s_BuildSucceededColor = "good";
+        private static readonly string s_BuildFailedColor = "terrible";
 
         public static ChromeTrace BuildTrace(Timeline timeline)
         {
@@ -38,12 +40,6 @@ namespace Model
                     ExtractEventsIntoTrace(rootEntry, buildStartTimestamp, trace.traceEvents);
                 }
             }
-
-            // dump source file compilations
-            /*foreach(var parallelFileCompilation in timeline.ParallelFileCompilations)
-            {
-                ExtractParallelFileCompilationIntoTrace(parallelFileCompilation, buildStartTimestamp, trace.traceEvents);
-            }*/
 
             return trace;
         }
@@ -79,7 +75,7 @@ namespace Model
             {
                 ph = 'B',
                 pid = timelineEntry.NodeId,
-                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                tid = timelineEntry.ThreadAffinity.ThreadId,
                 ts = (timelineEntry.StartTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
             });
@@ -90,14 +86,30 @@ namespace Model
                 ExtractEventsIntoTrace(child, buildStartTimestamp, events);
             }
 
-            // messages during this entry
             if(timelineBuildEntry != null)
             {
-                List<Event> messageEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent).ToList();
+                // messages within this entry
+                List<Event> messageEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _.GetType() == typeof(MessageEvent)).ToList();
                 for(int i = 0; i < messageEvents.Count(); ++i)
                 {
                     double millisecondsSinceStart = (messageEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
                     args.Add($"Message #{i}", $"[{millisecondsSinceStart:0.###} ms] {messageEvents[i].Message}");
+                }
+
+                // warnings within this entry
+                List<Event> warningEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _.GetType() == typeof(WarningEvent)).ToList();
+                for(int i = 0; i < warningEvents.Count(); ++i)
+                {
+                    double millisecondsSinceStart = (warningEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
+                    args.Add($"Warning #{i}", $"[{millisecondsSinceStart:0.###} ms] {warningEvents[i].Message}");
+                }
+
+                // errors within this entry
+                List<Event> errorEvents = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _.GetType() == typeof(ErrorEvent)).ToList();
+                for (int i = 0; i < errorEvents.Count(); ++i)
+                {
+                    double millisecondsSinceStart = (errorEvents[i].Timestamp - buildStartTimestamp).TotalMilliseconds;
+                    args.Add($"Error #{i}", $"[{millisecondsSinceStart:0.###} ms] {errorEvents[i].Message}");
                 }
             }
 
@@ -111,107 +123,27 @@ namespace Model
             {
                 ph = 'E',
                 pid = timelineEntry.NodeId,
-                tid = timelineEntry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                tid = timelineEntry.ThreadAffinity.ThreadId,
                 ts = (timelineEntry.EndTimestamp - buildStartTimestamp).TotalMilliseconds * 1000.0d,
                 name = timelineEntry.Name,
                 args = args,
+                cname = ExtractEventColor(timelineBuildEntry, timelineEntry)
             });
         }
 
-        /*private static void ExtractParallelFileCompilationIntoTrace(ParallelFileCompilation parallelFileCompilation, DateTime startTimestamp, List<ChromeTracingEvent> events)
+        private static string ExtractEventColor(TimelineBuildEntry timelineBuildEntry, TimelineEntry timelineEntry)
         {
-            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext != null);
-            Debug.Assert(parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId != Microsoft.Build.Framework.BuildEventContext.InvalidNodeId);
-
-            HashSet<Tuple<int, int>> registeredTIDs = new HashSet<Tuple<int, int>>();
-
-            int pid = parallelFileCompilation.Parent.StartBuildEvent.BuildEventContext.NodeId;
-            foreach (var fileCompilation in parallelFileCompilation.Compilations)
+            if(timelineBuildEntry != null)
             {
-                int tid = parallelFileCompilation.Parent.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset +
-                          fileCompilation.ThreadId + 1;
-                registeredTIDs.Add(new Tuple<int, int>(tid, fileCompilation.ThreadId));
-
-                // start event
-                events.Add(new ChromeTracingEvent()
+                BuildFinishedEvent endEvent = timelineBuildEntry.BuildEntry.EndEvent as BuildFinishedEvent;
+                if (endEvent != null)
                 {
-                    ph = 'B',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                    name = fileCompilation.FileName,
-                });
-
-                // frontend compilation
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'X',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.StartTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                    dur = (fileCompilation.FrontEndFinishTime - fileCompilation.StartTimestamp).TotalMilliseconds * 1000.0f,
-                    name = fileCompilation.FrontEndDLL,
-                    args = new Dictionary<string, string> {
-                        { "/Bt+", fileCompilation.FrontEndFinishMessage }
-                    },
-                    cname = s_CompilerFrontendColor
-                });
-
-                // backend compilation
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'X',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.FrontEndFinishTime - startTimestamp).TotalMilliseconds * 1000.0,
-                    dur = (fileCompilation.BackEndFinishTime - fileCompilation.FrontEndFinishTime).TotalMilliseconds * 1000.0f,
-                    name = "c2.dll",
-                    args = new Dictionary<string, string> {
-                        { "/Bt+", fileCompilation.BackEndFinishMessage }
-                    },
-                    cname = s_CompilerBackendColor
-                });
-
-                // end event
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'E',
-                    pid = pid,
-                    tid = tid,
-                    ts = (fileCompilation.EndTimestamp - startTimestamp).TotalMilliseconds * 1000.0,
-                    name = fileCompilation.FileName,
-                });
+                    return endEvent.Succeeded ? s_BuildSucceededColor : s_BuildFailedColor;
+                }
             }
 
-            // TODO: move these to its own method
-            // name of these pid+tid (tuple contains <offsetted tid, real tid>
-            foreach(Tuple<int, int> tidPair in registeredTIDs)
-            {
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'M',
-                    name = "thread_name",
-                    pid = pid,
-                    tid = tidPair.Item1,
-                    args = new Dictionary<string, string> {
-                        { "name", $"Thread {parallelFileCompilation.Parent.ThreadAffinity.ThreadId}, CL {tidPair.Item2}" }
-                    },
-                });
-
-                // because we've added a new name it will be sorted by name
-                // we want to go back to sort them by offsetted tid
-                events.Add(new ChromeTracingEvent()
-                {
-                    ph = 'M',
-                    name = "thread_sort_index",
-                    pid = pid,
-                    tid = tidPair.Item1,
-                    args = new Dictionary<string, string> {
-                        { "sort_index", tidPair.Item1.ToString() }
-                    }
-                });
-            }
-        }*/
+            return null;
+        }
 
         private static void ExtractProcessNamesIntoTrace(Timeline timeline, List<ChromeTracingEvent> events)
         {
@@ -286,7 +218,7 @@ namespace Model
         {
             registeredTIDs.Add(new Tuple<int, int, int>(
                 entry.NodeId,
-                entry.ThreadAffinity.ThreadId * s_ParallelProjectThreadOffset,
+                entry.ThreadAffinity.ThreadId,
                 entry.ThreadAffinity.ThreadId
             ));
 
