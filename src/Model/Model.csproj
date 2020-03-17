@@ -48,7 +48,6 @@
     <Compile Include="BuildLoggers\AllMessagesToCallbackLogger.cs" />
     <Compile Include="BuildLoggers\AllMessagesToCallbackRawLogger.cs" />
     <Compile Include="BuildLoggers\AllMessagesToCallbackUILogger.cs" />
-    <Compile Include="BuildLoggers\AllMessagesToFileLogger.cs" />
     <Compile Include="BuildMessage\BuildMessage.cs" />
     <Compile Include="BuildTimeline\Entries\BuildEntry.cs" />
     <Compile Include="BuildTimeline\Entries\TimelineBuildEntry.cs" />
