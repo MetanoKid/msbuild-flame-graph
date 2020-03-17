@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C49C74FD-E1C2-4310-9190-9996177902CD}</ProjectGuid>
+    <ProjectGuid>{19317603-ECDA-4CB8-B781-619CF69F2979}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Model</RootNamespace>
-    <AssemblyName>Model</AssemblyName>
+    <RootNamespace>BuildTimeline</RootNamespace>
+    <AssemblyName>BuildTimeline</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IntermediateOutputPath>$(SolutionDir)obj\$(Configuration)\$(MSBuildProjectName)</IntermediateOutputPath>
     <OutputPath>$(SolutionDir)bin\$(Configuration)\$(MSBuildProjectName)</OutputPath>
     <TargetFrameworkProfile />
@@ -33,11 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,17 +41,34 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildEventConverter\Converter.cs" />
-    <Compile Include="DiskFile\DiskFile.cs" />
-    <Compile Include="PropertyChangeNotifier\PropertyChangeNotifier.cs" />
-    <Compile Include="Solution\Project.cs" />
-    <Compile Include="Solution\Solution.cs" />
+    <Compile Include="BuildData.cs" />
+    <Compile Include="Entries\BuildEntry.cs" />
+    <Compile Include="Entries\TimelineBuildEntry.cs" />
+    <Compile Include="Entries\TimelineEntry.cs" />
+    <Compile Include="Events\BuildFinishedEvent.cs" />
+    <Compile Include="Events\BuildStartedEvent.cs" />
+    <Compile Include="Events\Context\EventContext.cs" />
+    <Compile Include="Events\Context\MessageEventContext.cs" />
+    <Compile Include="Events\Context\ProjectEventContext.cs" />
+    <Compile Include="Events\Context\TargetEventContext.cs" />
+    <Compile Include="Events\Context\TaskEventContext.cs" />
+    <Compile Include="Events\ErrorEvent.cs" />
+    <Compile Include="Events\Event.cs" />
+    <Compile Include="Events\MessageEvent.cs" />
+    <Compile Include="Events\ProjectFinishedEvent.cs" />
+    <Compile Include="Events\ProjectStartedEvent.cs" />
+    <Compile Include="Events\TargetFinishedEvent.cs" />
+    <Compile Include="Events\TargetStartedEvent.cs" />
+    <Compile Include="Events\TaskFinishedEvent.cs" />
+    <Compile Include="Events\TaskStartedEvent.cs" />
+    <Compile Include="Events\WarningEvent.cs" />
+    <Compile Include="Timeline\Builder\PostProcess\TimelineEntryPostProcessor.cs" />
+    <Compile Include="Timeline\Builder\TimelineBuilder.cs" />
+    <Compile Include="Timeline\ThreadAffinity.cs" />
+    <Compile Include="Timeline\Timeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Solution\SolutionLoader.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

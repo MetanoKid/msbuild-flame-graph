@@ -1,10 +1,10 @@
 ﻿using Microsoft.Win32;
+using MSBuildWrapper;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -61,6 +61,7 @@ namespace Builder
             {
                 try
                 {
+                    m_viewModel.BuildTarget = "";
                     m_viewModel.LoadSolution(dialog.FileName);
                 }
                 catch (ArgumentException ex)
@@ -70,27 +71,71 @@ namespace Builder
             }
         }
 
+        private string BuildEventsFileName(BuilderViewModel viewModel)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            builder.Append("Events - ");
+            builder.Append($"{Path.GetFileNameWithoutExtension(viewModel.Solution.Path)} - ");
+
+            if(viewModel.SelectedProjectToBuild != SolutionCompiler.s_CompileFullSolution)
+            {
+                builder.Append($"{viewModel.SelectedProjectToBuild} - ");
+            }
+
+            builder.Append($"{viewModel.BuildTarget} - ");
+            builder.Append($"{viewModel.SelectedConfigurationPlatform.Configuration} - ");
+            builder.Append($"{viewModel.SelectedConfigurationPlatform.Platform}");
+
+            return builder.ToString();
+        }
+
+        private string BuildTraceFileName(BuildTimeline.BuildData data)
+        {
+            StringBuilder builder = new StringBuilder();
+            
+            builder.Append("Trace - ");
+            builder.Append($"{Path.GetFileNameWithoutExtension(data.SolutionPath)} - ");
+
+            if (data.Project != null)
+            {
+                builder.Append($"{data.Project} - ");
+                // MSBuild requires it in the form "Project:Target"
+                builder.Append($"{data.Target.Split(':')[1]} - ");
+            }
+            else
+            {
+                builder.Append($"{data.Target} - ");
+            }
+
+            builder.Append($"{data.Configuration} - ");
+            builder.Append($"{data.Platform}");
+
+            return builder.ToString();
+        }
+
         private void BuildSolution(MainWindow window)
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "JSON file (*.json)|*.json";
-            dialog.FileName = $"{m_viewModel.BuildTarget} - {m_viewModel.SelectedConfigurationPlatform.Configuration} - {m_viewModel.SelectedConfigurationPlatform.Platform} - {Path.GetFileNameWithoutExtension(m_viewModel.Solution.Path)} - Events";
+            dialog.FileName = BuildEventsFileName(m_viewModel);
             if (dialog.ShowDialog() == true)
             {
                 m_viewModel.BuildMessages.Clear();
 
-                List<Model.CompilationDataExtractor> dataExtractors = new List<Model.CompilationDataExtractor>();
+                List<CompilationDataExtractor> dataExtractors = new List<CompilationDataExtractor>();
 
                 // extractor that redirects messages to UI
-                dataExtractors.Add(new Model.CallbackPerMessageDataExtractor(window.OnBuildMessage));
+                dataExtractors.Add(new CallbackPerMessageDataExtractor(window.OnBuildMessage));
 
                 // extractor that accumulates all raw messages then converts them into a custom representation
-                Model.CustomEventFormatExtractor eventsExtractor = new Model.CustomEventFormatExtractor();
+                CustomEventFormatExtractor eventsExtractor = new CustomEventFormatExtractor();
                 dataExtractors.Add(eventsExtractor);
 
                 // asynchronously build the solution
                 Task.Run(() => {
                     m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
+                                                       m_viewModel.SelectedProjectToBuild,
                                                        m_viewModel.SelectedConfigurationPlatform.Configuration,
                                                        m_viewModel.SelectedConfigurationPlatform.Platform,
                                                        m_viewModel.BuildTarget,
@@ -123,31 +168,31 @@ namespace Builder
             {
                 // load data from file
                 string eventsJSON = File.ReadAllText(openEventsFileDialog.FileName);
-                Model.BuildData data = JsonConvert.DeserializeObject<Model.BuildData>(eventsJSON, new JsonSerializerSettings()
+                BuildTimeline.BuildData data = JsonConvert.DeserializeObject<BuildTimeline.BuildData>(eventsJSON, new JsonSerializerSettings()
                 {
                     TypeNameHandling = TypeNameHandling.Auto
                 });
                 
                 SaveFileDialog saveTimelineFileDialog = new SaveFileDialog();
                 saveTimelineFileDialog.Filter = "JSON file (*.json)|*.json";
-                saveTimelineFileDialog.FileName = $"{data.Target} - {data.Configuration} - {data.Platform} - {Path.GetFileNameWithoutExtension(data.SolutionPath)} - Trace";
+                saveTimelineFileDialog.FileName = BuildTraceFileName(data);
 
                 if(saveTimelineFileDialog.ShowDialog() == true)
                 {
                     // build a hierarchical timeline of the events
-                    Model.BuildTimeline.TimelineBuilder builder = new Model.BuildTimeline.TimelineBuilder(data);
+                    BuildTimeline.TimelineBuilder builder = new BuildTimeline.TimelineBuilder(data);
 
                     // include some post-processing for CL and Link tasks
-                    Model.BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
-                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
-                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
-                    postProcessors += Model.BuildTimeline.TimelineEntryPostProcessor.TaskLink;
+                    BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
 
                     // build a hierarchical timeline of the events
-                    Model.BuildTimeline.Timeline timeline = builder.Build(postProcessors);
+                    BuildTimeline.Timeline timeline = builder.Build(postProcessors);
 
                     // dump it to file
-                    Model.ChromeTrace trace = Model.ChromeTracingSerializer.BuildTrace(timeline);
+                    TimelineSerializer.ChromeTrace trace = TimelineSerializer.ChromeTracingSerializer.BuildTrace(timeline);
                     string json = JsonConvert.SerializeObject(trace,
                         Formatting.Indented,
                         new JsonSerializerSettings()
