@@ -360,8 +360,6 @@ namespace Model.BuildTimeline
 
                 TimelineEntry linkerEntry = new TimelineEntry(match.Groups[2].Value.Trim(), message.Context.NodeId, startTimestamp, message.Timestamp);
                 parent.AddChild(linkerEntry);
-
-                linkerEntry.ThreadAffinity.SetParameters(linkerEntry.ThreadAffinity.ThreadId, s_CompilationThreadAffinityOffsetFromParent, s_CompilationThreadAffinityIncrement);
             };
 
             // add entries within Pass 1
