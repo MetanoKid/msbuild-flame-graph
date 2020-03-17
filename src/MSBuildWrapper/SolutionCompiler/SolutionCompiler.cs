@@ -1,6 +1,5 @@
 ﻿using Model;
 using System.Collections.Generic;
-using Microsoft.Build.Locator;
 
 namespace MSBuildWrapper
 {
@@ -26,10 +25,6 @@ namespace MSBuildWrapper
 
         public SolutionCompiler()
         {
-            if(!MSBuildLocator.IsRegistered)
-            {
-                MSBuildLocator.RegisterDefaults();
-            }
         }
 
         public void Start(Solution solution, string project, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
