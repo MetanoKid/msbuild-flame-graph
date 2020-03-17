@@ -1,5 +1,5 @@
-﻿using Microsoft.Build.Framework;
-using BuildTimeline;
+﻿using BuildTimeline;
+using Microsoft.Build.Framework;
 using System.Collections.Generic;
 using System.Linq;
 
