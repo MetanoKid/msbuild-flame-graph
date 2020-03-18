@@ -187,6 +187,7 @@ namespace Builder
                     postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
                     postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
                     postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
+                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.FlagD1ReportTime;
 
                     // build a hierarchical timeline of the events
                     BuildTimeline.Timeline timeline = builder.Build(postProcessors);
