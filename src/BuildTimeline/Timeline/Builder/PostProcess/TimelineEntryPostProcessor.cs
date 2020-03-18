@@ -13,8 +13,8 @@ namespace BuildTimeline
         public delegate void Processor(TimelineEntry entry);
 
         private static readonly Regex s_CompileFileStart = new Regex(@"^[^\s]+\.(cpp|cc|c)$");
-        private static readonly Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+(c1\.dll|c1xx\.dll)\).+\[(.+)\]$");
-        private static readonly Regex s_CompileBackEndFinish = new Regex(@"^time\(.+(c2.dll)\).+\[(.+)\]$");
+        private static readonly Regex s_CompileFrontEndFinish = new Regex(@"^time\(.+(c1\.dll|c1xx\.dll)\)=(.+)s.+\[(.+)\]$");
+        private static readonly Regex s_CompileBackEndFinish = new Regex(@"^time\(.+(c2.dll)\)=(.+)s.+\[(.+)\]$");
 
         private static readonly Regex s_LinkPass1 = new Regex(@"^Linker:(\s\(.+\))? Pass 1.+time = (.+)s .+$");
         private static readonly Regex s_LinkPass2 = new Regex(@"^Linker:(\s\(.+\))? Pass 2.+time = (.+)s .+$");
@@ -22,9 +22,6 @@ namespace BuildTimeline
 
         private static readonly string s_TaskCLSingleThreadFrontEndFinishedMessage = "Generating Code...";
         private static readonly string s_TaskCLSingleThreadFrontEndStartedMessage = "Compiling...";
-
-        private static readonly string s_FrontendDefaultName = "frontend";
-        private static readonly string s_BackendDefaultName = "backend";
 
         private static readonly string s_LinkerPass1Name = "Pass 1";
         private static readonly string s_LinkerPass2Name = "Pass 2";
@@ -101,9 +98,6 @@ namespace BuildTimeline
 
                         compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
-                        // add a front-end entry
-                        TimelineEntry frontend = new TimelineEntry(s_FrontendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
-                        compilationEntry.AddChild(frontend);
 
                         continue;
                     }
@@ -112,16 +106,22 @@ namespace BuildTimeline
                     Match matchFrontendFinished = s_CompileFrontEndFinish.Match(message.Message);
                     if (matchFrontendFinished.Success)
                     {
-                        TimelineEntry compilationEntry = compilationEntries.Find(_ => _.Name == matchFrontendFinished.Groups[2].Value.Split('\\').Last());
-                        Debug.Assert(compilationEntry != null);
+                        TimelineEntry compilationEntry = compilationEntries.Find(_ => _.Name == matchFrontendFinished.Groups[3].Value.Split('\\').Last());
+                        if(compilationEntry != null)
+                        {
+                            double elapsedTimeFromMessage = Double.Parse(matchFrontendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
+                            TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                            DateTime startTimestamp = message.Timestamp - elapsedTime;
+                            if (startTimestamp < compilationEntry.StartTimestamp)
+                            {
+                                startTimestamp = compilationEntry.StartTimestamp;
+                            }
 
-                        // edit front-end entry
-                        TimelineEntry frontend = compilationEntry.ChildEntries.Find(_ => _.Name == s_FrontendDefaultName);
-                        Debug.Assert(frontend != null);
-
-                        frontend.Name = matchFrontendFinished.Groups[1].Value;
-                        frontend.SetEndTimestamp(message.Timestamp);
-                        compilationEntry.SetEndTimestamp(message.Timestamp);
+                            // add a front-end entry
+                            TimelineEntry frontend = new TimelineEntry(matchFrontendFinished.Groups[1].Value, message.Context.NodeId, startTimestamp, message.Timestamp);
+                            compilationEntry.AddChild(frontend);
+                            compilationEntry.SetEndTimestamp(message.Timestamp);
+                        }
 
                         continue;
                     }
@@ -139,15 +139,24 @@ namespace BuildTimeline
                     Match matchBackendFinished = s_CompileBackEndFinish.Match(message.Message);
                     if (matchBackendFinished.Success)
                     {
-                        DateTime entryBackendCompilationStartTimestamp = compilationEntries.Last().EndTimestamp;
+                        Debug.Assert(compilationEntries.Count > 0);
 
-                        TimelineEntry compilationEntry = new TimelineEntry(matchBackendFinished.Groups[2].Value.Split('\\').Last(), message.Context.NodeId, entryBackendCompilationStartTimestamp, message.Timestamp);
+                        // create new entry as parent of the back-end entry
+                        TimelineEntry compilationEntry = new TimelineEntry(matchBackendFinished.Groups[3].Value.Split('\\').Last(), message.Context.NodeId, compilationEntries.Last().EndTimestamp, message.Timestamp);
                         compilationEntries.Add(compilationEntry);
 
                         compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
                         // add a back-end entry
-                        TimelineEntry backend = new TimelineEntry(matchBackendFinished.Groups[1].Value, message.Context.NodeId, entryBackendCompilationStartTimestamp, message.Timestamp);
+                        double elapsedTimeFromMessage = Double.Parse(matchBackendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
+                        TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                        DateTime startTimestamp = message.Timestamp - elapsedTime;
+                        if(startTimestamp < compilationEntry.StartTimestamp)
+                        {
+                            startTimestamp = compilationEntry.StartTimestamp;
+                        }
+
+                        TimelineEntry backend = new TimelineEntry(matchBackendFinished.Groups[1].Value, message.Context.NodeId, startTimestamp, message.Timestamp);
                         compilationEntry.AddChild(backend);
 
                         continue;
@@ -190,14 +199,13 @@ namespace BuildTimeline
                 Match matchFileStarted = s_CompileFileStart.Match(message.Message);
                 if(matchFileStarted.Success)
                 {
+                    // with /Wall flag enabled some warnings will be mixed up with this kind of message
+                    // meaning we may not match the regex and won't add the entry
+
                     TimelineEntry compilationEntry = new TimelineEntry(matchFileStarted.Value, message.Context.NodeId, message.Timestamp, message.Timestamp);
                     compilationEntries.Add(compilationEntry);
 
                     compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
-
-                    // add a front-end entry
-                    TimelineEntry frontend = new TimelineEntry(s_FrontendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
-                    compilationEntry.AddChild(frontend);
 
                     continue;
                 }
@@ -206,22 +214,28 @@ namespace BuildTimeline
                 Match matchFrontendFinished = s_CompileFrontEndFinish.Match(message.Message);
                 if(matchFrontendFinished.Success)
                 {
-                    TimelineEntry compilationEntry = compilationEntries.Find(_ => _.Name == matchFrontendFinished.Groups[2].Value.Split('\\').Last());
-                    Debug.Assert(compilationEntry != null);
+                    // with /Wall flag enabled some warnings will be mixed up with this kind of message
+                    // meaning we may not match the regex and won't add the entry
+                    // we may not even find the parent compilation entry
 
-                    // edit front-end entry
-                    TimelineEntry frontend = compilationEntry.ChildEntries.Find(_ => _.Name == s_FrontendDefaultName);
-                    Debug.Assert(frontend != null);
+                    TimelineEntry compilationEntry = compilationEntries.Find(_ => _.Name == matchFrontendFinished.Groups[3].Value.Split('\\').Last());
+                    if(compilationEntry != null)
+                    {
+                        double elapsedTimeFromMessage = Double.Parse(matchFrontendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
+                        TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                        DateTime startTimestamp = message.Timestamp - elapsedTime;
+                        if (startTimestamp < compilationEntry.StartTimestamp)
+                        {
+                            startTimestamp = compilationEntry.StartTimestamp;
+                        }
 
-                    frontend.Name = matchFrontendFinished.Groups[1].Value;
-                    frontend.SetEndTimestamp(message.Timestamp);
+                        // add a front-end entry
+                        TimelineEntry frontend = new TimelineEntry(matchFrontendFinished.Groups[1].Value, message.Context.NodeId, startTimestamp, message.Timestamp);
+                        compilationEntry.AddChild(frontend);
 
-                    // just in case the front-end fails, update entry's timestamp
-                    compilationEntry.SetEndTimestamp(message.Timestamp);
-
-                    // add a back-end entry
-                    TimelineEntry backend = new TimelineEntry(s_BackendDefaultName, message.Context.NodeId, message.Timestamp, message.Timestamp);
-                    compilationEntry.AddChild(backend);
+                        // just in case the back-end fails, update entry's timestamp
+                        compilationEntry.SetEndTimestamp(message.Timestamp);
+                    }
 
                     continue;
                 }
@@ -230,18 +244,39 @@ namespace BuildTimeline
                 Match matchBackendFinished = s_CompileBackEndFinish.Match(message.Message);
                 if(matchBackendFinished.Success)
                 {
-                    TimelineEntry compilationEntry = compilationEntries.Find(_ => _.Name == matchBackendFinished.Groups[2].Value.Split('\\').Last());
-                    Debug.Assert(compilationEntry != null);
+                    // with /Wall flag enabled some warnings will be mixed up with this kind of message
+                    // meaning we may not match the regex and won't add the entry
+                    // we may not even find the parent compilation entry nor the frontend sibling
 
-                    // edit back-end entry
-                    TimelineEntry backend = compilationEntry.ChildEntries.Find(_ => _.Name == s_BackendDefaultName);
-                    Debug.Assert(backend != null);
+                    TimelineEntry compilationEntry = compilationEntries.Find(_ => _.Name == matchBackendFinished.Groups[3].Value.Split('\\').Last());
+                    if(compilationEntry != null)
+                    {
+                        TimelineEntry frontendEntry = compilationEntry.ChildEntries.FirstOrDefault();
 
-                    backend.Name = matchBackendFinished.Groups[1].Value;
-                    backend.SetEndTimestamp(message.Timestamp);
+                        double elapsedTimeFromMessage = Double.Parse(matchBackendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
+                        TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                        DateTime startTimestamp = message.Timestamp - elapsedTime;
 
-                    compilationEntry.SetEndTimestamp(message.Timestamp);
+                        if(frontendEntry != null)
+                        {
+                            if(startTimestamp < frontendEntry.EndTimestamp)
+                            {
+                                startTimestamp = frontendEntry.EndTimestamp;
+                            }
+                        }
+                        else if(startTimestamp < compilationEntry.StartTimestamp)
+                        {
+                            startTimestamp = compilationEntry.StartTimestamp;
+                        }
 
+                        // add a back-end entry
+                        TimelineEntry backend = new TimelineEntry(matchBackendFinished.Groups[1].Value, message.Context.NodeId, startTimestamp, message.Timestamp);
+                        compilationEntry.AddChild(backend);
+
+                        // complete compilation entry
+                        compilationEntry.SetEndTimestamp(message.Timestamp);
+                    }
+                    
                     continue;
                 }
             }
