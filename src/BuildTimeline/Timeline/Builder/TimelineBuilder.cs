@@ -83,6 +83,8 @@ namespace BuildTimeline
 
             CalculateParallelEntries(timeline);
 
+            EnsureNoEntryOverflowsParent(timeline);
+
             return timeline;
         }
 
@@ -540,6 +542,50 @@ namespace BuildTimeline
             {
                 PostProcess(child, perEntryPostProcessors);
             }
+        }
+
+        private void EnsureNoEntryOverflowsParent(Timeline timeline)
+        {
+            foreach (List<TimelineEntry> rootsInNode in timeline.PerNodeRootEntries)
+            {
+                foreach (TimelineEntry root in rootsInNode)
+                {
+                    EnsureNoEntryOverflowsParent(root);
+                }
+            }
+        }
+
+        private void EnsureNoEntryOverflowsParent(TimelineEntry entry)
+        {
+            entry.FitChildEntries();
+            /*
+            if (entry.ChildEntries.Count > 0)
+            {
+                DateTime childrenFirstStartTimestamp = entry.ChildEntries.First().StartTimestamp;
+                DateTime childrenLastEndTimestamp = entry.ChildEntries.Last().EndTimestamp;
+
+                // no child should start before its parent! overflow occurs on end timestamps
+                Debug.Assert(childrenFirstStartTimestamp >= entry.StartTimestamp);
+                
+                if(childrenLastEndTimestamp > entry.EndTimestamp)
+                {
+                    DateTime minDate = entry.StartTimestamp;
+                    DateTime maxDate = childrenLastEndTimestamp;
+                    TimeSpan elapsedWithOverflow = maxDate - minDate;
+                    TimeSpan elapsedParent = entry.ElapsedTime;
+                    
+                    double ratio = (double) elapsedParent.Ticks / elapsedWithOverflow.Ticks;
+                    entry.ScaleChildrenTimestamps(ratio);
+                }
+                else
+                {
+                    foreach(TimelineEntry child in entry.ChildEntries)
+                    {
+                        EnsureNoEntryOverflowsParent(child);
+                    }
+                }
+            }
+            */
         }
     }
 }

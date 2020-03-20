@@ -485,7 +485,6 @@ namespace BuildTimeline
                     currentFrontendEntry = timelineBuildEntry.ChildEntries.Find(_ => _.Name == matchFileStarted.Value);
 
                     Debug.Assert(currentFrontendEntry.ChildEntries.Count > 0, "Processing /d1reportTime without an existing front-end child");
-                    Debug.Assert(currentFrontendEntry.ChildEntries.Count == 1, "Processing /d1reportTime without single-threaded compilation");
 
                     // first entry is the front-end one, second one (if any) is the back-end one
                     currentSubEntry = currentFrontendEntry.ChildEntries.First();
