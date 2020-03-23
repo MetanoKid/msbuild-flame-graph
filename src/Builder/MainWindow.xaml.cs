@@ -1,12 +1,16 @@
 ﻿using System.Collections.Specialized;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Builder
 {
     public partial class MainWindow : Window
     {
+        private static readonly Regex s_RegexIntegersOnly = new Regex(@"^\d+$");
+
         private BuilderViewModel m_viewModel;
 
         public MainWindow()
@@ -34,6 +38,12 @@ namespace Builder
                 ScrollViewer scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
                 scrollViewer.ScrollToBottom();
             }
+        }
+
+        private void NumericOnlyTextInputEvent(object sender, TextCompositionEventArgs e)
+        {
+            bool isNumber = s_RegexIntegersOnly.IsMatch(e.Text);
+            e.Handled = !isNumber;
         }
     }
 }

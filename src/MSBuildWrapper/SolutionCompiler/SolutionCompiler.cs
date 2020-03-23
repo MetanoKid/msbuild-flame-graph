@@ -32,10 +32,10 @@ namespace MSBuildWrapper
             }
         }
 
-        public void Start(Solution solution, string project, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
+        public void Start(Solution solution, BuildConfiguration buildConfiguration, List<CompilationDataExtractor> dataExtractors)
         {
             CurrentCompilation = new Compilation(solution);
-            CurrentCompilation.Start(project, configuration, platform, target, maxParallelProjects, maxParallelCL, dataExtractors);
+            CurrentCompilation.Start(buildConfiguration, dataExtractors);
         }
     }
 }

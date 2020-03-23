@@ -11,6 +11,8 @@ namespace BuildTimeline
         public string Target { get; set; }
         public int MaxParallelProjects { get; set; }
         public int MaxParallelCLPerProject { get; set; }
+        public bool UseBtPlusFlag { get; set; }
+        public bool UseTimePlusFlag { get; set; }
         public List<Event> Events;
     }
 }

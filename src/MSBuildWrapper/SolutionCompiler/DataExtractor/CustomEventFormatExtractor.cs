@@ -38,7 +38,9 @@ namespace MSBuildWrapper
                 Platform = data.Platform,
                 Target = data.Target,
                 MaxParallelProjects = data.MaxParallelProjects,
-                MaxParallelCLPerProject = data.MaxParallelCLPerProject,
+                MaxParallelCLPerProject = data.MaxParallelCLTasksPerProject,
+                UseBtPlusFlag = data.UseBtPlusFlag,
+                UseTimePlusFlag = data.UseTimePlusFlag,
                 Events = new List<Event>()
             };
         }

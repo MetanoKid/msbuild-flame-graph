@@ -13,7 +13,9 @@ namespace MSBuildWrapper
             public string Platform { get; set; }
             public string Target { get; set; }
             public int MaxParallelProjects { get; set; }
-            public int MaxParallelCLPerProject { get; set; }
+            public int MaxParallelCLTasksPerProject { get; set; }
+            public bool UseBtPlusFlag { get; set; }
+            public bool UseTimePlusFlag { get; set; }
         }
 
         // which Logger instance is used to perform the extraction

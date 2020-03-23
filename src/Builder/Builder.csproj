@@ -94,7 +94,13 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-    <Content Include="Resources\ExtraCompilerLinkerOptions.props">
+    <Content Include="Resources\ExtraFlags_BtPlus.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ExtraFlags_TimePlus.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ExtraFlags_BtPlus_TimePlus.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
