@@ -190,7 +190,10 @@ namespace Builder
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
                     }
 
-                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.FlagD1ReportTime;
+                    if(data.UseD1ReportTimeFlag)
+                    {
+                        postProcessors += BuildTimeline.TimelineEntryPostProcessor.FlagD1ReportTime;
+                    }
 
                     // build a hierarchical timeline of the events
                     BuildTimeline.Timeline timeline = builder.Build(postProcessors);

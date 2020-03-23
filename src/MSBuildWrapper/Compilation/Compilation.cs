@@ -51,19 +51,26 @@ namespace MSBuildWrapper
 
         private string GetExtraFlagsFileName(BuildConfiguration buildConfiguration)
         {
-            if(buildConfiguration.UseBtPlusFlag && buildConfiguration.UseTimePlusFlag)
-            {
-                return "ExtraFlags_BtPlus_TimePlus.props";
-            }
+            string flagsAsFileName = string.Empty;
 
             if(buildConfiguration.UseBtPlusFlag)
             {
-                return "ExtraFlags_BtPlus.props";
+                flagsAsFileName += "_BtPlus";
             }
 
             if(buildConfiguration.UseTimePlusFlag)
             {
-                return "ExtraFlags_TimePlus.props";
+                flagsAsFileName += "_TimePlus";
+            }
+
+            if(buildConfiguration.UseD1ReportTimeFlag)
+            {
+                flagsAsFileName += "_D1ReportTime";
+            }
+
+            if(!string.IsNullOrEmpty(flagsAsFileName))
+            {
+                return $"ExtraFlags{flagsAsFileName}.props";
             }
 
             return null;
@@ -110,6 +117,7 @@ namespace MSBuildWrapper
                 MaxParallelCLTasksPerProject = buildConfiguration.MaxParallelCLTasksPerProject,
                 UseBtPlusFlag = buildConfiguration.UseBtPlusFlag,
                 UseTimePlusFlag = buildConfiguration.UseTimePlusFlag,
+                UseD1ReportTimeFlag = buildConfiguration.UseD1ReportTimeFlag,
             }));
 
             // this represents our build

@@ -49,7 +49,7 @@
                     <StackPanel Orientation="Horizontal"
                                 Margin="0,5,0,5">
                         <StackPanel Orientation="Horizontal"
-                                    Margin="0,0,30,0">
+                                    Margin="0,0,90,0">
                             <Label>Project</Label>
                             <ComboBox ItemsSource="{Binding ProjectsToBuild}"
                                       Width="100"
@@ -57,7 +57,7 @@
                                       SelectedItem="{Binding CurrentBuildConfiguration.Project}"></ComboBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal"
-                                    Margin="0,0,30,0">
+                                    Margin="0,0,90,0">
                             <Label>Configuration | Platform</Label>
                             <ComboBox ItemsSource="{Binding Solution.ValidConfigurationPlatforms}"
                                       Width="100"
@@ -76,12 +76,17 @@
                     <StackPanel Orientation="Horizontal"
                                 Margin="5,0,0,5">
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding CurrentBuildConfiguration.UseBtPlusFlag}">
+                            <CheckBox IsChecked="{Binding CurrentBuildConfiguration.UseBtPlusFlag}"
+                                      IsEnabled="{Binding CurrentBuildConfiguration.NotUseD1ReportTimeFlag}">
                                 <TextBlock Text="/Bt+"></TextBlock>
                             </CheckBox>
                             <CheckBox Margin="20,0,0,0"
                                       IsChecked="{Binding CurrentBuildConfiguration.UseTimePlusFlag}">
                                 <TextBlock Text="/time+"></TextBlock>
+                            </CheckBox>
+                            <CheckBox Margin="20,0,0,0"
+                                      IsChecked="{Binding CurrentBuildConfiguration.UseD1ReportTimeFlag}">
+                                <TextBlock Text="/d1reportTime"></TextBlock>
                             </CheckBox>
                             <StackPanel Orientation="Horizontal"
                                         Margin="60,0,0,0">
@@ -96,7 +101,8 @@
                                 <TextBox Width="50"
                                          HorizontalContentAlignment="Right"
                                          Text="{Binding CurrentBuildConfiguration.MaxParallelCLTasksPerProject}"
-                                         PreviewTextInput="NumericOnlyTextInputEvent"></TextBox>
+                                         PreviewTextInput="NumericOnlyTextInputEvent"
+                                         IsEnabled="{Binding CurrentBuildConfiguration.NotUseD1ReportTimeFlag}"></TextBox>
                                 <TextBlock Margin="5,0,0,0">Max parallel CL per project</TextBlock>
                             </StackPanel>
                         </StackPanel>

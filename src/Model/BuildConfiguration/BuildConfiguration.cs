@@ -74,6 +74,42 @@ namespace Model
             }
         }
 
+        public bool UseD1ReportTimeFlag
+        {
+            get
+            {
+                return m_useD1ReportTimeFlag;
+            }
+
+            set
+            {
+                // required to properly parse output
+                if(value)
+                {
+                    UseBtPlusFlag = true;
+                    MaxParallelCLTasksPerProject = 1;
+                }
+                else if(m_useD1ReportTimeFlag)
+                {
+                    UseBtPlusFlag = false;
+                    MaxParallelCLTasksPerProject = Environment.ProcessorCount;
+                }
+
+                m_useD1ReportTimeFlag = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged("NotUseD1ReportTimeFlag");
+            }
+        }
+
+        public bool NotUseD1ReportTimeFlag
+        {
+            get
+            {
+                return !UseD1ReportTimeFlag;
+            }
+        }
+
         public int MaxParallelProjects
         {
             get
@@ -107,6 +143,7 @@ namespace Model
         private string m_target;
         private bool m_useBtPlusFlag;
         private bool m_useTimePlusFlag;
+        private bool m_useD1ReportTimeFlag;
         private int m_maxParallelProjects;
         private int m_maxParallelCLTasksPerProject;
 
@@ -118,6 +155,7 @@ namespace Model
 
             UseBtPlusFlag = false;
             UseTimePlusFlag = false;
+            UseD1ReportTimeFlag = false;
 
             MaxParallelProjects = 1;
             MaxParallelCLTasksPerProject = 1;

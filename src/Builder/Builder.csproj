@@ -103,6 +103,12 @@
     <Content Include="Resources\ExtraFlags_BtPlus_TimePlus.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\ExtraFlags_BtPlus_D1ReportTime.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ExtraFlags_BtPlus_TimePlus_D1ReportTime.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
