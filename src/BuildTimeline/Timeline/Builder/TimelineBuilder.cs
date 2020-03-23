@@ -398,7 +398,7 @@ namespace BuildTimeline
 
         private Timeline BuildTimelineFrom(BuildData buildData, TimelineBuilderContext context)
         {
-            Timeline timeline = new Timeline(buildData.MaxParallelProjects);
+            Timeline timeline = new Timeline(buildData.BuildConfiguration.MaxParallelProjects);
 
             // build belongs to NodeId 0, as reported by MSBuild, while other entries start at NodeId 1
             Debug.Assert(context.RootEntry.Context == null);

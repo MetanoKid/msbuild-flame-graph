@@ -1,4 +1,5 @@
 ﻿using BuildTimeline;
+using Model;
 using Microsoft.Build.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,22 +27,13 @@ namespace MSBuildWrapper
             Logger = new AllMessagesToCallbackRawLogger(OnBuildEvent);
         }
 
-        public override void BeforeBuildStarted(BuildStartedData data)
+        public override void BeforeBuildStarted(BuildConfiguration data)
         {
             base.BeforeBuildStarted(data);
 
             m_buildData = new BuildData()
             {
-                SolutionPath = data.SolutionPath,
-                Project = data.Project,
-                Configuration = data.Configuration,
-                Platform = data.Platform,
-                Target = data.Target,
-                MaxParallelProjects = data.MaxParallelProjects,
-                MaxParallelCLPerProject = data.MaxParallelCLTasksPerProject,
-                UseBtPlusFlag = data.UseBtPlusFlag,
-                UseTimePlusFlag = data.UseTimePlusFlag,
-                UseD1ReportTimeFlag = data.UseD1ReportTimeFlag,
+                BuildConfiguration = data,
                 Events = new List<Event>()
             };
         }

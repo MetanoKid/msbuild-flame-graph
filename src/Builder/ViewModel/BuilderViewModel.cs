@@ -61,7 +61,7 @@ namespace Builder
             }
         }
 
-        public BuildConfiguration CurrentBuildConfiguration
+        public BuildConfigurationViewModel CurrentBuildConfiguration
         {
             get
             {
@@ -81,7 +81,7 @@ namespace Builder
         private Solution m_solution;
         private SolutionCompiler m_solutionCompiler;
         private ObservableCollection<BuildMessage> m_buildMessages;
-        private BuildConfiguration m_buildConfiguration;
+        private BuildConfigurationViewModel m_buildConfiguration;
 
         public BuilderViewModel()
         {
@@ -110,7 +110,7 @@ namespace Builder
             ProjectsToBuild.Add(SolutionCompiler.s_CompileFullSolution);
             Solution.Projects.ForEach(_ => ProjectsToBuild.Add(_.Name));
 
-            CurrentBuildConfiguration = new BuildConfiguration();
+            CurrentBuildConfiguration = new BuildConfigurationViewModel();
 
             SelectDefaultValues();
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace BuildTimeline
 {
@@ -23,14 +24,20 @@ namespace BuildTimeline
 
             if (e is BuildStartedEvent)
             {
-                name = $"{buildData.Target} - {buildData.Configuration}|{buildData.Platform} - Max parallel: {buildData.MaxParallelProjects} projects, {buildData.MaxParallelCLPerProject} CL tasks per project - {buildData.SolutionPath}";
+                StringBuilder builder = new StringBuilder();
+                builder.Append($"{buildData.BuildConfiguration.Target}");
+                builder.Append($" - {buildData.BuildConfiguration.Configuration}|{buildData.BuildConfiguration.Platform}");
+                builder.Append($" - Max parallel: {buildData.BuildConfiguration.MaxParallelProjects} projects, {buildData.BuildConfiguration.MaxParallelCLTasksPerProject} CL tasks per project");
+                builder.Append($" - {buildData.BuildConfiguration.SolutionPath}");
+
+                name = builder.ToString();
             }
             else if (e is ProjectStartedEvent)
             {
                 name = (e as ProjectStartedEvent).ProjectFile;
 
                 // find the longest common path between project and solution, then remove it from project file path
-                string[] solutionPath = buildData.SolutionPath.Split(Path.DirectorySeparatorChar);
+                string[] solutionPath = buildData.BuildConfiguration.SolutionPath.Split(Path.DirectorySeparatorChar);
                 string[] projectPath = name.Split(Path.DirectorySeparatorChar);
 
                 int firstDifferenceIndex = -1;

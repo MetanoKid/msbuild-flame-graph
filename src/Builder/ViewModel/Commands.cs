@@ -94,21 +94,21 @@ namespace Builder
             StringBuilder builder = new StringBuilder();
             
             builder.Append("Trace - ");
-            builder.Append($"{Path.GetFileNameWithoutExtension(data.SolutionPath)} - ");
+            builder.Append($"{Path.GetFileNameWithoutExtension(data.BuildConfiguration.SolutionPath)} - ");
 
-            if (data.Project != null)
+            if (data.BuildConfiguration.Project != null)
             {
-                builder.Append($"{data.Project} - ");
+                builder.Append($"{data.BuildConfiguration.Project} - ");
                 // MSBuild requires it in the form "Project:Target"
-                builder.Append($"{data.Target.Split(':')[1]} - ");
+                builder.Append($"{data.BuildConfiguration.Target.Split(':')[1]} - ");
             }
             else
             {
-                builder.Append($"{data.Target} - ");
+                builder.Append($"{data.BuildConfiguration.Target} - ");
             }
 
-            builder.Append($"{data.Configuration} - ");
-            builder.Append($"{data.Platform}");
+            builder.Append($"{data.BuildConfiguration.Configuration} - ");
+            builder.Append($"{data.BuildConfiguration.Platform}");
 
             return builder.ToString();
         }
@@ -133,8 +133,30 @@ namespace Builder
 
                 // asynchronously build the solution
                 Task.Run(() => {
+                    // MSBuild uses "Project:Target" syntax when building a single project, "Target" for full solution
+                    bool anyProjectSelected = m_viewModel.CurrentBuildConfiguration.Project != SolutionCompiler.s_CompileFullSolution;
+                    string projectTargetToBuild = anyProjectSelected ?
+                                                    $"{m_viewModel.CurrentBuildConfiguration.Project}:{m_viewModel.CurrentBuildConfiguration.Target}" :
+                                                    m_viewModel.CurrentBuildConfiguration.Target;
+
+                    // translate view-model to model object
+                    Model.BuildConfiguration buildConfiguration = new Model.BuildConfiguration()
+                    {
+                        SolutionPath = m_viewModel.Solution.Path,
+                        Project = anyProjectSelected ? m_viewModel.CurrentBuildConfiguration.Project : null,
+                        Configuration = m_viewModel.CurrentBuildConfiguration.ConfigurationPlatform.Configuration,
+                        Platform = m_viewModel.CurrentBuildConfiguration.ConfigurationPlatform.Platform,
+                        Target = projectTargetToBuild,
+                        MaxParallelProjects = m_viewModel.CurrentBuildConfiguration.MaxParallelProjects,
+                        MaxParallelCLTasksPerProject = m_viewModel.CurrentBuildConfiguration.MaxParallelCLTasksPerProject,
+                        UseBtPlusFlag = m_viewModel.CurrentBuildConfiguration.UseBtPlusFlag,
+                        UseTimePlusFlag = m_viewModel.CurrentBuildConfiguration.UseTimePlusFlag,
+                        UseD1ReportTimeFlag = m_viewModel.CurrentBuildConfiguration.UseD1ReportTimeFlag,
+                    };
+
+                    // build it
                     m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
-                                                       m_viewModel.CurrentBuildConfiguration,
+                                                       buildConfiguration,
                                                        dataExtractors);
 
                     Debug.Assert(eventsExtractor.IsFinished);
@@ -179,18 +201,18 @@ namespace Builder
                     // include some post-processing
                     BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
                     
-                    if(data.UseBtPlusFlag)
+                    if(data.BuildConfiguration.UseBtPlusFlag)
                     {
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
                     }
 
-                    if(data.UseTimePlusFlag)
+                    if(data.BuildConfiguration.UseTimePlusFlag)
                     {
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
                     }
 
-                    if(data.UseD1ReportTimeFlag)
+                    if(data.BuildConfiguration.UseD1ReportTimeFlag)
                     {
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.FlagD1ReportTime;
                     }

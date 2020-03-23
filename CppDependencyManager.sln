@@ -6,11 +6,11 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Builder", "src\Builder\Builder.csproj", "{D5941EB2-3273-472D-9EA1-1C25F5C572FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "src\Model\Model.csproj", "{C49C74FD-E1C2-4310-9190-9996177902CD}"
-	ProjectSection(ProjectDependencies) = postProject
-		{19317603-ECDA-4CB8-B781-619CF69F2979} = {19317603-ECDA-4CB8-B781-619CF69F2979}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildTimeline", "src\BuildTimeline\BuildTimeline.csproj", "{19317603-ECDA-4CB8-B781-619CF69F2979}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C49C74FD-E1C2-4310-9190-9996177902CD} = {C49C74FD-E1C2-4310-9190-9996177902CD}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimelineSerializer", "src\TimelineSerializer\TimelineSerializer.csproj", "{7D335775-8D76-45B4-A035-695C88EB0134}"
 EndProject

@@ -82,21 +82,21 @@ namespace MSBuildWrapper
 
             Status = CompilationStatus.InProgress;
 
-            // MSBuild uses "Project:Target" syntax when building a single project, "Target" for full solution
-            bool anyProjectSelected = buildConfiguration.Project != SolutionCompiler.s_CompileFullSolution;
-            string projectTargetToBuild = anyProjectSelected ? $"{buildConfiguration.Project}:{buildConfiguration.Target}" : buildConfiguration.Target;
-
             // build the data to invoke MSBuild
             ProjectCollection projectCollection = new ProjectCollection();
             BuildParameters parameters = new BuildParameters(projectCollection);
             parameters.MaxNodeCount = buildConfiguration.MaxParallelProjects;
             parameters.UICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+            parameters.Culture = parameters.UICulture;
             parameters.Loggers = dataExtractors.Select(e => e.Logger);
 
-            Dictionary<string, string> globalProperties = new Dictionary<string, string>();
-            globalProperties.Add("Configuration", buildConfiguration.ConfigurationPlatform.Configuration);
-            globalProperties.Add("Platform", buildConfiguration.ConfigurationPlatform.Platform);
-            globalProperties.Add("CL_MPCount", buildConfiguration.MaxParallelCLTasksPerProject.ToString());
+            // these properties are fed to MSBuild
+            Dictionary<string, string> globalProperties = new Dictionary<string, string>
+            {
+                { "Configuration", buildConfiguration.Configuration },
+                { "Platform", buildConfiguration.Platform },
+                { "CL_MPCount", buildConfiguration.MaxParallelCLTasksPerProject.ToString() }
+            };
 
             // add extra info to some tasks (CL, Lib/Link, ...)
             string extraFlagsFileName = GetExtraFlagsFileName(buildConfiguration);
@@ -106,22 +106,10 @@ namespace MSBuildWrapper
             }
 
             // let data extractors know we're about to start
-            dataExtractors.ForEach(e => e.BeforeBuildStarted(new CompilationDataExtractor.BuildStartedData()
-            {
-                SolutionPath = m_solution.Path,
-                Project = anyProjectSelected ? buildConfiguration.Project : null,
-                Configuration = buildConfiguration.ConfigurationPlatform.Configuration,
-                Platform = buildConfiguration.ConfigurationPlatform.Platform,
-                Target = projectTargetToBuild,
-                MaxParallelProjects = buildConfiguration.MaxParallelProjects,
-                MaxParallelCLTasksPerProject = buildConfiguration.MaxParallelCLTasksPerProject,
-                UseBtPlusFlag = buildConfiguration.UseBtPlusFlag,
-                UseTimePlusFlag = buildConfiguration.UseTimePlusFlag,
-                UseD1ReportTimeFlag = buildConfiguration.UseD1ReportTimeFlag,
-            }));
+            dataExtractors.ForEach(e => e.BeforeBuildStarted(buildConfiguration));
 
             // this represents our build
-            BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { projectTargetToBuild }, null);
+            BuildRequestData data = new BuildRequestData(m_solution.Path, globalProperties, null, new[] { buildConfiguration.Target }, null);
 
             // this call is synchronous, so it will stop here until build ends
             BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, data);
