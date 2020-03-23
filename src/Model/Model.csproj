@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildConfiguration\BuildConfiguration.cs" />
     <Compile Include="BuildEventConverter\Converter.cs" />
     <Compile Include="DiskFile\DiskFile.cs" />
     <Compile Include="PropertyChangeNotifier\PropertyChangeNotifier.cs" />

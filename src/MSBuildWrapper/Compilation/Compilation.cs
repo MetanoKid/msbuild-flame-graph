@@ -21,7 +21,6 @@ namespace MSBuildWrapper
             {
                 m_status = value;
                 OnPropertyChanged();
-                OnPropertyChanged("IsReady");
             }
         }
 
@@ -50,41 +49,67 @@ namespace MSBuildWrapper
             m_solution = solution;
         }
 
-        public void Start(string project, string configuration, string platform, string target, int maxParallelProjects, int maxParallelCL, List<CompilationDataExtractor> dataExtractors)
+        private string GetExtraFlagsFileName(BuildConfiguration buildConfiguration)
+        {
+            if(buildConfiguration.UseBtPlusFlag && buildConfiguration.UseTimePlusFlag)
+            {
+                return "ExtraFlags_BtPlus_TimePlus.props";
+            }
+
+            if(buildConfiguration.UseBtPlusFlag)
+            {
+                return "ExtraFlags_BtPlus.props";
+            }
+
+            if(buildConfiguration.UseTimePlusFlag)
+            {
+                return "ExtraFlags_TimePlus.props";
+            }
+
+            return null;
+        }
+
+        public void Start(BuildConfiguration buildConfiguration, List<CompilationDataExtractor> dataExtractors)
         {
             Debug.Assert(Status == CompilationStatus.NotStarted);
 
             Status = CompilationStatus.InProgress;
 
             // MSBuild uses "Project:Target" syntax when building a single project, "Target" for full solution
-            bool projectSelected = project != SolutionCompiler.s_CompileFullSolution;
-            string projectTargetToBuild = projectSelected ? $"{project}:{target}" : target;
+            bool anyProjectSelected = buildConfiguration.Project != SolutionCompiler.s_CompileFullSolution;
+            string projectTargetToBuild = anyProjectSelected ? $"{buildConfiguration.Project}:{buildConfiguration.Target}" : buildConfiguration.Target;
 
             // build the data to invoke MSBuild
             ProjectCollection projectCollection = new ProjectCollection();
             BuildParameters parameters = new BuildParameters(projectCollection);
-            parameters.MaxNodeCount = maxParallelProjects;
+            parameters.MaxNodeCount = buildConfiguration.MaxParallelProjects;
             parameters.UICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
             parameters.Loggers = dataExtractors.Select(e => e.Logger);
 
             Dictionary<string, string> globalProperties = new Dictionary<string, string>();
-            globalProperties.Add("Configuration", configuration);
-            globalProperties.Add("Platform", platform);
-            globalProperties.Add("CL_MPCount", maxParallelCL.ToString());
-            
+            globalProperties.Add("Configuration", buildConfiguration.ConfigurationPlatform.Configuration);
+            globalProperties.Add("Platform", buildConfiguration.ConfigurationPlatform.Platform);
+            globalProperties.Add("CL_MPCount", buildConfiguration.MaxParallelCLTasksPerProject.ToString());
+
             // add extra info to some tasks (CL, Lib/Link, ...)
-            globalProperties.Add("ForceImportBeforeCppTargets", Path.GetFullPath(@"Resources\ExtraCompilerLinkerOptions.props"));
+            string extraFlagsFileName = GetExtraFlagsFileName(buildConfiguration);
+            if(extraFlagsFileName != null)
+            {
+                globalProperties.Add("ForceImportBeforeCppTargets", Path.GetFullPath($@"Resources\{extraFlagsFileName}"));
+            }
 
             // let data extractors know we're about to start
             dataExtractors.ForEach(e => e.BeforeBuildStarted(new CompilationDataExtractor.BuildStartedData()
             {
                 SolutionPath = m_solution.Path,
-                Project = projectSelected ? project : null,
-                Configuration = configuration,
-                Platform = platform,
+                Project = anyProjectSelected ? buildConfiguration.Project : null,
+                Configuration = buildConfiguration.ConfigurationPlatform.Configuration,
+                Platform = buildConfiguration.ConfigurationPlatform.Platform,
                 Target = projectTargetToBuild,
-                MaxParallelProjects = parameters.MaxNodeCount,
-                MaxParallelCLPerProject = maxParallelCL,
+                MaxParallelProjects = buildConfiguration.MaxParallelProjects,
+                MaxParallelCLTasksPerProject = buildConfiguration.MaxParallelCLTasksPerProject,
+                UseBtPlusFlag = buildConfiguration.UseBtPlusFlag,
+                UseTimePlusFlag = buildConfiguration.UseTimePlusFlag,
             }));
 
             // this represents our build

@@ -1,11 +1,21 @@
 ﻿using Model;
 using MSBuildWrapper;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Builder
 {
     public class BuilderViewModel : PropertyChangeNotifier
     {
+        public bool HasSolution
+        {
+            get
+            {
+                return Solution != null;
+            }
+        }
+
         public Commands Commands { get; private set; }
 
         public Solution Solution
@@ -19,6 +29,7 @@ namespace Builder
             {
                 m_solution = value;
                 OnPropertyChanged();
+                OnPropertyChanged("HasSolution");
             }
         }
 
@@ -50,66 +61,40 @@ namespace Builder
             }
         }
 
-        public Solution.ConfigurationPlatform SelectedConfigurationPlatform
+        public BuildConfiguration CurrentBuildConfiguration
         {
             get
             {
-                return m_selectedConfigurationPlatform;
+                return m_buildConfiguration;
             }
 
             set
             {
-                m_selectedConfigurationPlatform = value;
+                m_buildConfiguration = value;
                 OnPropertyChanged();
             }
         }
 
-        public string SelectedProjectToBuild
-        {
-            get
-            {
-                return m_selectedProjectToBuild;
-            }
-
-            set
-            {
-                m_selectedProjectToBuild = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string BuildTarget
-        {
-            get
-            {
-                return m_buildTarget;
-            }
-
-            set
-            {
-                m_buildTarget = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ObservableCollection<string> ProjectsToBuild
-        {
-            get;
-            private set;
-        }
+        public ObservableCollection<string> ProjectsToBuild { get; private set; }
+        public List<string> BuildTargets { get; private set; }
 
         private Solution m_solution;
         private SolutionCompiler m_solutionCompiler;
         private ObservableCollection<BuildMessage> m_buildMessages;
-        private Solution.ConfigurationPlatform m_selectedConfigurationPlatform;
-        private string m_selectedProjectToBuild;
-        private string m_buildTarget;
+        private BuildConfiguration m_buildConfiguration;
 
         public BuilderViewModel()
         {
             Commands = new Commands(this);
             BuildMessages = new ObservableCollection<BuildMessage>();
             ProjectsToBuild = new ObservableCollection<string>();
+
+            BuildTargets = new List<string>()
+            {
+                "Build",
+                "Rebuild",
+                "Clean",
+            };
         }
 
         public void LoadSolution(string path)
@@ -125,6 +110,8 @@ namespace Builder
             ProjectsToBuild.Add(SolutionCompiler.s_CompileFullSolution);
             Solution.Projects.ForEach(_ => ProjectsToBuild.Add(_.Name));
 
+            CurrentBuildConfiguration = new BuildConfiguration();
+
             SelectDefaultValues();
         }
 
@@ -132,15 +119,18 @@ namespace Builder
         {
             if(ProjectsToBuild.Count > 0)
             {
-                SelectedProjectToBuild = ProjectsToBuild[0];
+                CurrentBuildConfiguration.Project = ProjectsToBuild[0];
             }
 
             if(Solution != null && Solution.ValidConfigurationPlatforms.Count > 0)
             {
-                SelectedConfigurationPlatform = Solution.ValidConfigurationPlatforms[0];
+                CurrentBuildConfiguration.ConfigurationPlatform = Solution.ValidConfigurationPlatforms[0];
             }
 
-            BuildTarget = "Build";
+            CurrentBuildConfiguration.Target = BuildTargets[0];
+
+            CurrentBuildConfiguration.MaxParallelProjects = Environment.ProcessorCount;
+            CurrentBuildConfiguration.MaxParallelCLTasksPerProject = Environment.ProcessorCount;
         }
     }
 }

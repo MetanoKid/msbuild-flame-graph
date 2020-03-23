@@ -61,7 +61,6 @@ namespace Builder
             {
                 try
                 {
-                    m_viewModel.BuildTarget = "";
                     m_viewModel.LoadSolution(dialog.FileName);
                 }
                 catch (ArgumentException ex)
@@ -78,14 +77,14 @@ namespace Builder
             builder.Append("Events - ");
             builder.Append($"{Path.GetFileNameWithoutExtension(viewModel.Solution.Path)} - ");
 
-            if(viewModel.SelectedProjectToBuild != SolutionCompiler.s_CompileFullSolution)
+            if(viewModel.CurrentBuildConfiguration.Project != SolutionCompiler.s_CompileFullSolution)
             {
-                builder.Append($"{viewModel.SelectedProjectToBuild} - ");
+                builder.Append($"{viewModel.CurrentBuildConfiguration.Project} - ");
             }
 
-            builder.Append($"{viewModel.BuildTarget} - ");
-            builder.Append($"{viewModel.SelectedConfigurationPlatform.Configuration} - ");
-            builder.Append($"{viewModel.SelectedConfigurationPlatform.Platform}");
+            builder.Append($"{viewModel.CurrentBuildConfiguration.Target} - ");
+            builder.Append($"{viewModel.CurrentBuildConfiguration.ConfigurationPlatform.Configuration} - ");
+            builder.Append($"{viewModel.CurrentBuildConfiguration.ConfigurationPlatform.Platform}");
 
             return builder.ToString();
         }
@@ -135,12 +134,7 @@ namespace Builder
                 // asynchronously build the solution
                 Task.Run(() => {
                     m_viewModel.SolutionCompiler.Start(m_viewModel.Solution,
-                                                       m_viewModel.SelectedProjectToBuild,
-                                                       m_viewModel.SelectedConfigurationPlatform.Configuration,
-                                                       m_viewModel.SelectedConfigurationPlatform.Platform,
-                                                       m_viewModel.BuildTarget,
-                                                       Environment.ProcessorCount,
-                                                       Environment.ProcessorCount,
+                                                       m_viewModel.CurrentBuildConfiguration,
                                                        dataExtractors);
 
                     Debug.Assert(eventsExtractor.IsFinished);
@@ -182,11 +176,19 @@ namespace Builder
                     // build a hierarchical timeline of the events
                     BuildTimeline.TimelineBuilder builder = new BuildTimeline.TimelineBuilder(data);
 
-                    // include some post-processing for CL and Link tasks
+                    // include some post-processing
                     BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
-                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
-                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
-                    postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
+
+                    if(data.UseBtPlusFlag)
+                    {
+                        postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
+                        postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLMultiThread;
+                    }
+
+                    if(data.UseTimePlusFlag)
+                    {
+                        postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
+                    }
 
                     // build a hierarchical timeline of the events
                     BuildTimeline.Timeline timeline = builder.Build(postProcessors);

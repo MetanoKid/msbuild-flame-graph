@@ -59,15 +59,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="BuildConfiguration.xaml.cs">
-      <DependentUpon>BuildConfiguration.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewModel\BuilderViewModel.cs" />
     <Compile Include="ViewModel\Commands.cs" />
-    <Page Include="BuildConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -105,7 +98,13 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-    <Content Include="Resources\ExtraCompilerLinkerOptions.props">
+    <Content Include="Resources\ExtraFlags_BtPlus.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ExtraFlags_TimePlus.props">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ExtraFlags_BtPlus_TimePlus.props">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
