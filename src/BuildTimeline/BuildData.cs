@@ -13,6 +13,7 @@ namespace BuildTimeline
         public int MaxParallelCLPerProject { get; set; }
         public bool UseBtPlusFlag { get; set; }
         public bool UseTimePlusFlag { get; set; }
+        public bool UseD1ReportTimeFlag { get; set; }
         public List<Event> Events;
     }
 }

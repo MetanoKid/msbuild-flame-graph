@@ -26,6 +26,32 @@ namespace BuildTimeline
         private static readonly string s_LinkerPass1Name = "Pass 1";
         private static readonly string s_LinkerPass2Name = "Pass 2";
 
+        private static readonly Regex s_D1ReportTimeSectionHeader = new Regex(@"^(Include Headers):$");
+        private static readonly Regex s_D1ReportTimeSectionClassDefinition = new Regex(@"^(Class Definitions):$");
+        private static readonly Regex s_D1ReportTimeSectionFunctionDefintition = new Regex(@"^(Function Definitions):$");
+        private static readonly Regex s_D1ReportTimeSectionCount = new Regex(@"^\s+Count: (\d+)$");
+        private static readonly Regex s_D1ReportTimeSectionTotal = new Regex(@"^\s+Total: (.+)s$");
+        private static readonly Regex s_D1ReportTimeEntry = new Regex(@"^(\t+)(.+): (.+)s$");
+        private static readonly Regex s_D1ReportTimeBlockEnd = new Regex(@"^$");
+
+        private static int s_D1ReportTimeEntryBaseIndentation = 2;
+
+        enum D1ReportTimeSection
+        {
+            None,
+            Headers,
+            ClassDefinitions,
+            FunctionDefinitions
+        };
+
+        private static TimeSpan TimeSpanFromSeconds(double seconds)
+        {
+            double milliseconds = seconds * 1000.0;
+            double microseconds = milliseconds * 1000.0;
+            double ticks = microseconds * 10.0;    // 100 nanoseconds
+            return TimeSpan.FromTicks((long) ticks);
+        }
+
         private static bool IsTaskCL(TimelineEntry entry)
         {
             // only take TimelineBuildEntry into account
@@ -98,7 +124,6 @@ namespace BuildTimeline
 
                         compilationEntry.ThreadAffinity.SetParameters(compilationEntry.ThreadAffinity.ThreadId, ThreadAffinity.s_OffsetFromParentPostProcessedEntries, ThreadAffinity.s_OffsetFromParentPostProcessedEntriesIncrement);
 
-
                         continue;
                     }
 
@@ -110,7 +135,7 @@ namespace BuildTimeline
                         if(compilationEntry != null)
                         {
                             double elapsedTimeFromMessage = Double.Parse(matchFrontendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
-                            TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                            TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                             DateTime startTimestamp = message.Timestamp - elapsedTime;
                             if (startTimestamp < compilationEntry.StartTimestamp)
                             {
@@ -149,7 +174,7 @@ namespace BuildTimeline
 
                         // add a back-end entry
                         double elapsedTimeFromMessage = Double.Parse(matchBackendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
-                        TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                        TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                         DateTime startTimestamp = message.Timestamp - elapsedTime;
                         if(startTimestamp < compilationEntry.StartTimestamp)
                         {
@@ -222,7 +247,7 @@ namespace BuildTimeline
                     if(compilationEntry != null)
                     {
                         double elapsedTimeFromMessage = Double.Parse(matchFrontendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
-                        TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                        TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                         DateTime startTimestamp = message.Timestamp - elapsedTime;
                         if (startTimestamp < compilationEntry.StartTimestamp)
                         {
@@ -254,7 +279,7 @@ namespace BuildTimeline
                         TimelineEntry frontendEntry = compilationEntry.ChildEntries.FirstOrDefault();
 
                         double elapsedTimeFromMessage = Double.Parse(matchBackendFinished.Groups[2].Value, CultureInfo.InvariantCulture);
-                        TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                        TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                         DateTime startTimestamp = message.Timestamp - elapsedTime;
 
                         if(frontendEntry != null)
@@ -333,7 +358,7 @@ namespace BuildTimeline
                 if(matchLinkerPass1.Success)
                 {
                     double elapsedTimeFromMessage = Double.Parse(matchLinkerPass1.Groups[2].Value, CultureInfo.InvariantCulture);
-                    TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                    TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                     DateTime startTimestamp = message.Timestamp - elapsedTime;
                     if(startTimestamp < timelineBuildEntry.StartTimestamp)
                     {
@@ -353,7 +378,7 @@ namespace BuildTimeline
                 if(matchLinkerPass2.Success)
                 {
                     double elapsedTimeFromMessage = Double.Parse(matchLinkerPass2.Groups[2].Value, CultureInfo.InvariantCulture);
-                    TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                    TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                     DateTime startTimestamp = message.Timestamp - elapsedTime;
                     if(linkEntries.Count > 0 && startTimestamp < linkEntries.Last().EndTimestamp)
                     {
@@ -376,7 +401,7 @@ namespace BuildTimeline
                 Match match = tuple.Item2;
 
                 double elapsedTimeFromMessage = Double.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
-                TimeSpan elapsedTime = TimeSpan.FromSeconds(elapsedTimeFromMessage);
+                TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
                 DateTime startTimestamp = message.Timestamp - elapsedTime;
 
                 if (parent.ChildEntries.Count == 0 && startTimestamp < parent.StartTimestamp)
@@ -422,6 +447,206 @@ namespace BuildTimeline
 
             // add them all to the Link task
             linkEntries.ForEach(timelineBuildEntry.AddChild);
+        }
+
+        public static void FlagD1ReportTime(TimelineEntry entry)
+        {
+            if(!IsTaskCL(entry))
+            {
+                return;
+            }
+
+            TimelineBuildEntry timelineBuildEntry = entry as TimelineBuildEntry;
+
+            // flag /d1reportTime operates within the front-end and has three sections
+            //   - Headers: time spent including headers
+            //   - Class Definitions: time spent defining classes
+            //   - Function Definitions: time spent defining functions
+            // each section ends with a blank line and a Total
+            // because of how MSBuild reports messages, we require build to compile each
+            // file in a single-threaded fashion or we'd get data mixed up
+
+            IEnumerable<MessageEvent> messages = timelineBuildEntry.BuildEntry.ChildEvents.Where(_ => _ is MessageEvent)
+                                                                                          .Select(_ => _ as MessageEvent);
+
+            // kind of a simplified state machine
+            TimelineEntry currentFrontendEntry = null;
+            TimelineEntry currentSubEntry = null;
+            D1ReportTimeSection currentSection = D1ReportTimeSection.None;
+            int currentIndentationLevel = 0;
+            bool processEntries = false;
+
+            foreach (MessageEvent message in messages)
+            {
+                // file compilation started
+                Match matchFileStarted = s_CompileFileStart.Match(message.Message);
+                if (matchFileStarted.Success)
+                {
+                    currentFrontendEntry = timelineBuildEntry.ChildEntries.Find(_ => _.Name == matchFileStarted.Value);
+
+                    Debug.Assert(currentFrontendEntry.ChildEntries.Count > 0, "Processing /d1reportTime without an existing front-end child");
+
+                    // first entry is the front-end one, second one (if any) is the back-end one
+                    currentSubEntry = currentFrontendEntry.ChildEntries.First();
+                    continue;
+                }
+
+                // processing /d1reportTime
+                if (currentFrontendEntry != null)
+                {
+                    switch(currentSection)
+                    {
+                        case D1ReportTimeSection.None:
+                            {
+                                // look for a new section
+                                Match matchSectionHeaders = s_D1ReportTimeSectionHeader.Match(message.Message);
+                                if(matchSectionHeaders.Success)
+                                {
+                                    currentSection = D1ReportTimeSection.Headers;
+
+                                    // first message starts with two tabs
+                                    currentIndentationLevel = s_D1ReportTimeEntryBaseIndentation;
+
+                                    TimelineEntry headersEntry = new TimelineEntry(matchSectionHeaders.Groups[1].Value, message.Context.NodeId, currentSubEntry.StartTimestamp, message.Timestamp);
+                                    currentSubEntry.AddChild(headersEntry);
+                                    currentSubEntry = headersEntry;
+
+                                    processEntries = true;
+
+                                    continue;
+                                }
+
+                                Match matchSectionClasses = s_D1ReportTimeSectionClassDefinition.Match(message.Message);
+                                if(matchSectionClasses.Success)
+                                {
+                                    currentSection = D1ReportTimeSection.ClassDefinitions;
+
+                                    // first message starts with two tabs
+                                    currentIndentationLevel = s_D1ReportTimeEntryBaseIndentation;
+
+                                    TimelineEntry classesEntry = new TimelineEntry(matchSectionClasses.Groups[1].Value, message.Context.NodeId, currentSubEntry.ChildEntries.Last().EndTimestamp, message.Timestamp);
+                                    currentSubEntry.AddChild(classesEntry);
+                                    currentSubEntry = classesEntry;
+
+                                    processEntries = true;
+
+                                    continue;
+                                }
+
+                                Match matchSectionFunctions = s_D1ReportTimeSectionFunctionDefintition.Match(message.Message);
+                                if(matchSectionFunctions.Success)
+                                {
+                                    currentSection = D1ReportTimeSection.FunctionDefinitions;
+
+                                    // first message starts with two tabs
+                                    currentIndentationLevel = s_D1ReportTimeEntryBaseIndentation;
+
+                                    TimelineEntry classesEntry = new TimelineEntry(matchSectionFunctions.Groups[1].Value, message.Context.NodeId, currentSubEntry.ChildEntries.Last().EndTimestamp, message.Timestamp);
+                                    currentSubEntry.AddChild(classesEntry);
+                                    currentSubEntry = classesEntry;
+
+                                    processEntries = true;
+
+                                    continue;
+                                }
+                            }
+                            break;
+
+                        case D1ReportTimeSection.Headers:
+                        case D1ReportTimeSection.ClassDefinitions:
+                        case D1ReportTimeSection.FunctionDefinitions:
+                            {
+                                // get total time spent in this section
+                                Match matchTotalTime = s_D1ReportTimeSectionTotal.Match(message.Message);
+                                if (matchTotalTime.Success)
+                                {
+                                    double elapsedTimeFromMessage = Double.Parse(matchTotalTime.Groups[1].Value, CultureInfo.InvariantCulture);
+                                    TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
+                                    DateTime endTimestamp = currentSubEntry.StartTimestamp + elapsedTime;
+
+                                    currentSubEntry.SetEndTimestamp(endTimestamp);
+
+                                    currentSection = D1ReportTimeSection.None;
+                                    currentSubEntry = currentSubEntry.Parent;
+                                    continue;
+                                }
+
+                                // block completed?
+                                Match matchBlockCompleted = s_D1ReportTimeBlockEnd.Match(message.Message);
+                                if(matchBlockCompleted.Success)
+                                {
+                                    if(processEntries)
+                                    {
+                                        // pop entries until we get to the top level
+                                        for(int i = currentIndentationLevel; i > s_D1ReportTimeEntryBaseIndentation; --i)
+                                        {
+                                            currentSubEntry = currentSubEntry.Parent;
+                                        }
+
+                                        processEntries = false;
+                                    }
+                                    continue;
+                                }
+
+                                if(processEntries)
+                                {
+                                    // match with an element
+                                    Match matchElement = s_D1ReportTimeEntry.Match(message.Message);
+                                    if(matchElement.Success)
+                                    {
+                                        // \t is a single character
+                                        int indentationLevel = matchElement.Groups[1].Value.Length;
+
+                                        // go to a parent, if needed
+                                        if(indentationLevel < currentIndentationLevel)
+                                        {
+                                            for(int i = 0; i < currentIndentationLevel - indentationLevel; ++i)
+                                            {
+                                                currentSubEntry = currentSubEntry.Parent;
+                                            }
+                                        }
+                                        // move to a child, if needed
+                                        else if(indentationLevel > currentIndentationLevel)
+                                        {
+                                            currentSubEntry = currentSubEntry.ChildEntries.Last();
+                                        }
+
+                                        // find out the start timestamp
+                                        DateTime startTimestamp = currentSubEntry.StartTimestamp;
+                                        if(currentSubEntry.ChildEntries.Count > 0)
+                                        {
+                                            startTimestamp = currentSubEntry.ChildEntries.Last().EndTimestamp;
+                                        }
+
+                                        // find out the end timestamp
+                                        double elapsedTimeFromMessage = Double.Parse(matchElement.Groups[3].Value, CultureInfo.InvariantCulture);
+                                        TimeSpan elapsedTime = TimeSpanFromSeconds(elapsedTimeFromMessage);
+                                        DateTime endTimestamp = startTimestamp + elapsedTime;
+
+                                        // build element
+                                        TimelineEntry elementEntry = new TimelineEntry(matchElement.Groups[2].Value, message.Context.NodeId, startTimestamp, endTimestamp);
+                                        currentSubEntry.AddChild(elementEntry);
+
+                                        currentIndentationLevel = indentationLevel;
+
+                                        continue;
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                // front-end finished
+                Match matchFrontendFinished = s_CompileFrontEndFinish.Match(message.Message);
+                if (matchFrontendFinished.Success)
+                {
+                    currentFrontendEntry = null;
+                    currentSubEntry = null;
+                    currentSection = D1ReportTimeSection.None;
+                    continue;
+                }
+            }
         }
     }
 }

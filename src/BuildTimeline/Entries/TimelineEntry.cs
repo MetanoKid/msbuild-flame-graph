@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace BuildTimeline
 {
     public class TimelineEntry
     {
-        public DateTime StartTimestamp { get; }
+        public DateTime StartTimestamp { get; private set; }
         public DateTime EndTimestamp { get; private set; }
 
         public TimeSpan ElapsedTime
@@ -68,6 +69,73 @@ namespace BuildTimeline
         {
             Debug.Assert(StartTimestamp <= timestamp);
             EndTimestamp = timestamp;
+        }
+
+        public void FitChildEntries()
+        {
+            if(ChildEntries.Count == 0)
+            {
+                return;
+            }
+
+            // we've defined fitting only when overflow occurs towards the end
+            Debug.Assert(ChildEntries.First().StartTimestamp >= StartTimestamp);
+
+            DateTime childrenLastEndTimestamp = ChildEntries.Last().EndTimestamp;
+            DateTime maxEndTimestamp = childrenLastEndTimestamp > EndTimestamp ? childrenLastEndTimestamp : EndTimestamp;
+
+            TimeSpan elapsedTimeWithOverflow = maxEndTimestamp - StartTimestamp;
+            double scale = elapsedTimeWithOverflow.Ticks > 0 ? (double) ElapsedTime.Ticks / elapsedTimeWithOverflow.Ticks : 1.0;
+            Debug.Assert(scale <= 1.0);
+
+            if(scale < 1.0)
+            {
+                ScaleTimestamps(scale);
+            }
+            
+            foreach(TimelineEntry child in ChildEntries)
+            {
+                child.FitChildEntries();
+            }
+        }
+
+        private void ScaleTimestamps(double scale)
+        {
+            foreach (TimelineEntry child in ChildEntries)
+            {
+                // take the local offset from parent's start (we can't modify it in absolute values, but relative ones)
+                TimeSpan originalLocalStartOffset = child.StartTimestamp - StartTimestamp;
+                TimeSpan originalLocalEndOffset = child.EndTimestamp - StartTimestamp;
+
+                // scale that local offset
+                TimeSpan scaledLocalStartOffset = TimeSpan.FromTicks((long) (originalLocalStartOffset.Ticks * scale));
+                TimeSpan scaledLocalEndOffset = TimeSpan.FromTicks((long) (originalLocalEndOffset.Ticks * scale));
+
+                // calculate new timestamps                
+                child.StartTimestamp = StartTimestamp + scaledLocalStartOffset;
+                child.EndTimestamp = StartTimestamp + scaledLocalEndOffset;
+
+                Debug.Assert(child.StartTimestamp >= StartTimestamp);
+                Debug.Assert(child.EndTimestamp <= EndTimestamp);
+
+                // because we've moved the origin (start timestamp) our relative offsets are no longer valid!
+                // so, apply the same offset to all children (absolute value, because it's an offset and not a timestamp)
+                child.MoveChildrenTimestamps(scaledLocalStartOffset - originalLocalStartOffset);
+
+                // propagate it
+                child.ScaleTimestamps(scale);
+            }
+        }
+
+        private void MoveChildrenTimestamps(TimeSpan offset)
+        {
+            foreach(TimelineEntry child in ChildEntries)
+            {
+                child.StartTimestamp += offset;
+                child.EndTimestamp += offset;
+
+                child.MoveChildrenTimestamps(offset);
+            }
         }
     }
 }

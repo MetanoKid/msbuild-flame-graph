@@ -178,7 +178,7 @@ namespace Builder
 
                     // include some post-processing
                     BuildTimeline.TimelineEntryPostProcessor.Processor postProcessors = null;
-
+                    
                     if(data.UseBtPlusFlag)
                     {
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskCLSingleThread;
@@ -188,6 +188,11 @@ namespace Builder
                     if(data.UseTimePlusFlag)
                     {
                         postProcessors += BuildTimeline.TimelineEntryPostProcessor.TaskLink;
+                    }
+
+                    if(data.UseD1ReportTimeFlag)
+                    {
+                        postProcessors += BuildTimeline.TimelineEntryPostProcessor.FlagD1ReportTime;
                     }
 
                     // build a hierarchical timeline of the events

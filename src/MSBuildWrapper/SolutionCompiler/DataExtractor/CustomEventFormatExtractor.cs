@@ -41,6 +41,7 @@ namespace MSBuildWrapper
                 MaxParallelCLPerProject = data.MaxParallelCLTasksPerProject,
                 UseBtPlusFlag = data.UseBtPlusFlag,
                 UseTimePlusFlag = data.UseTimePlusFlag,
+                UseD1ReportTimeFlag = data.UseD1ReportTimeFlag,
                 Events = new List<Event>()
             };
         }

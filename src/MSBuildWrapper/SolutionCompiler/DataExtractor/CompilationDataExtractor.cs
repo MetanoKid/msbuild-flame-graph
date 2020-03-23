@@ -16,6 +16,7 @@ namespace MSBuildWrapper
             public int MaxParallelCLTasksPerProject { get; set; }
             public bool UseBtPlusFlag { get; set; }
             public bool UseTimePlusFlag { get; set; }
+            public bool UseD1ReportTimeFlag { get; set; }
         }
 
         // which Logger instance is used to perform the extraction

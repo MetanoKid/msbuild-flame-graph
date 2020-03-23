@@ -1,5 +1,6 @@
 ﻿using Model;
 using System.Collections.Generic;
+using Microsoft.Build.Locator;
 
 namespace MSBuildWrapper
 {
@@ -25,6 +26,10 @@ namespace MSBuildWrapper
 
         public SolutionCompiler()
         {
+            if(!MSBuildLocator.IsRegistered)
+            {
+                MSBuildLocator.RegisterDefaults();
+            }
         }
 
         public void Start(Solution solution, BuildConfiguration buildConfiguration, List<CompilationDataExtractor> dataExtractors)
