@@ -83,12 +83,16 @@ namespace MSBuildWrapper
             Status = CompilationStatus.InProgress;
 
             // build the data to invoke MSBuild
+            // failing to provide a ProjectCollection won't ensure project order
             ProjectCollection projectCollection = new ProjectCollection();
-            BuildParameters parameters = new BuildParameters(projectCollection);
-            parameters.MaxNodeCount = buildConfiguration.MaxParallelProjects;
-            parameters.UICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
-            parameters.Culture = parameters.UICulture;
-            parameters.Loggers = dataExtractors.Select(e => e.Logger);
+            System.Globalization.CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+            BuildParameters parameters = new BuildParameters(projectCollection)
+            {
+                MaxNodeCount = buildConfiguration.MaxParallelProjects,
+                UICulture = cultureInfo,
+                Culture = cultureInfo,
+                Loggers = dataExtractors.Select(e => e.Logger),
+            };
 
             // these properties are fed to MSBuild
             Dictionary<string, string> globalProperties = new Dictionary<string, string>
