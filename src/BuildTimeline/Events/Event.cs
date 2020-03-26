@@ -12,8 +12,5 @@ namespace BuildTimeline
 
         // instant in time where this event was created
         public DateTime Timestamp { get; set; }
-
-        // id of the thread this event was created in (as reported by MSBuild)
-        public int ThreadId { get; set; }
     }
 }

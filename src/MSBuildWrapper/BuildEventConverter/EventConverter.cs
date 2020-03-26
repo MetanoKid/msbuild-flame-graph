@@ -56,7 +56,6 @@ namespace MSBuildWrapper
             {
                 Context = null,
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
             };
         }
@@ -72,7 +71,6 @@ namespace MSBuildWrapper
             {
                 Context = null,
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 Succeeded = e.Succeeded,
@@ -109,7 +107,6 @@ namespace MSBuildWrapper
                     ProjectId = e.BuildEventContext.ProjectInstanceId
                 },
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 ParentEventContext = parentContext,
@@ -133,7 +130,6 @@ namespace MSBuildWrapper
                     ProjectId = e.BuildEventContext.ProjectInstanceId
                 },
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 ProjectFile = e.ProjectFile,
@@ -157,7 +153,6 @@ namespace MSBuildWrapper
                     TargetId = e.BuildEventContext.TargetId,
                 },
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 ProjectFile = e.ProjectFile,
@@ -183,7 +178,6 @@ namespace MSBuildWrapper
                     TargetId = e.BuildEventContext.TargetId,
                 },
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 ProjectFile = e.ProjectFile,
@@ -210,7 +204,6 @@ namespace MSBuildWrapper
                     TaskId = e.BuildEventContext.TaskId,
                 },
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 ProjectFile = e.ProjectFile,
@@ -236,7 +229,6 @@ namespace MSBuildWrapper
                     TaskId = e.BuildEventContext.TaskId,
                 },
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 ProjectFile = e.ProjectFile,
@@ -287,7 +279,6 @@ namespace MSBuildWrapper
             {
                 Context = context,
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
                 
                 Code = e.Code,
@@ -345,7 +336,6 @@ namespace MSBuildWrapper
             {
                 Context = context,
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 Code = e.Code,
@@ -403,7 +393,6 @@ namespace MSBuildWrapper
             {
                 Context = context,
                 Message = e.Message,
-                ThreadId = e.ThreadId,
                 Timestamp = e.Timestamp,
 
                 Code = e.Code,
