@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Builder"
         xmlns:model="clr-namespace:Model;assembly=Model"
         mc:Ignorable="d"
-        Title="Builder" Height="480" Width="1024">
+        Title="MSBuild to Flame Graph" Height="480" Width="1024">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
