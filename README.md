@@ -1,8 +1,8 @@
 # MSBuild Flame Graph
 
-Explore MSBuild executions to find why your build is slow. Initially targeted for C++ projects, it can be used for other MSBuild-based projects.
+Explore MSBuild executions to find why your C++ builds are slow.
 
-This is the graph for the default Visual Studio 2015 C++ project:
+This is the flame graph for a default Visual Studio 2015 C++ project:
 
 ![Flame Graph: default Visual Studio 2015](./readme-samples/blank-project.png "Flame graph: default Visual Studio 2015 project")
 
@@ -16,13 +16,13 @@ I wrote about the steps I took to build the initial version of the tool [in this
 
 ## Features
 
-  * MSBuild 15: builds VS2015 and VS2017 C++ projects.
-  * Processes `/Bt+` and `/time+`:
+  * Uses MSBuild 15: builds VS2015 and VS2017 C++ projects.
+  * Processes `/Bt+` and `/time+` MSVC flags:
     ![Flame Graph: /Bt+ and /time+](./readme-samples/bt-plus-time-plus.png "Flame graph: /Bt+ and /time+")
-  * Processes `/d1reportTime` (exclusive to VS2017 projects):
+  * Processes `/d1reportTime` MSVC flag (exclusive to VS2017 projects):
     ![Flame Graph: /d1reportTime](./readme-samples/d1reportTime.png "Flame graph: /d1reportTime")
   * Builds projects into an `Events.json` file, converts it into `Trace.json` in a separate step.
-  * Can theoretically build any MSBuild project, but is only tested on C++ ones.
+  * Can theoretically build other MSBuild-based projects, but is only tested on C++ ones.
 
 ## Getting started
 
