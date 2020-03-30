@@ -1,22 +1,22 @@
 # MSBuild Flame Graph
 
-Explore MSBuild execution to find why your build is slow. Initially targeted for C++ projects, it can be used for other MSBuild-based projects.
+Explore MSBuild executions to find why your build is slow. Initially targeted for C++ projects, it can be used for other MSBuild-based projects.
 
 This is the graph for the default Visual Studio 2015 C++ project:
 
-![Flame Graph: default Visual Studio 2015](https://github.com/MetanoKid/msbuild-flame-graph/tree/master/readme-samples/blank-project.png "Flame graph: default Visual Studio 2015 project")
+![Flame Graph: default Visual Studio 2015](./readme-samples/blank-project.png "Flame graph: default Visual Studio 2015 project")
 
 This graph represents a build from [this repository](https://github.com/randomascii/main/tree/master/xperf/vc_parallel_compiles).
 
-![Flame Graph: Bruce Dawson's parallel projects](https://github.com/MetanoKid/msbuild-flame-graph/tree/master/readme-samples/random-ascii-parallel.png "Flame graph: Bruce Dawson's parallel projects")
+![Flame Graph: Bruce Dawson's parallel projects](./readme-samples/random-ascii-parallel.png "Flame graph: Bruce Dawson's parallel projects")
 
 ## Features
 
   * MSBuild 15: builds VS2015 and VS2017 C++ projects.
   * Processes `/Bt+` and `/time+`:
-    ![Flame Graph: /Bt+ and /time+](https://github.com/MetanoKid/msbuild-flame-graph/tree/master/readme-samples/bt-plus-time-plus.png "Flame graph: /Bt+ and /time+")
+    ![Flame Graph: /Bt+ and /time+](./readme-samples/bt-plus-time-plus.png "Flame graph: /Bt+ and /time+")
   * Processes `/d1reportTime` (exclusive to VS2017 projects):
-    ![Flame Graph: /d1reportTime](https://github.com/MetanoKid/msbuild-flame-graph/tree/master/readme-samples/d1reportTime.png "Flame graph: /d1reportTime")
+    ![Flame Graph: /d1reportTime](./readme-samples/d1reportTime.png "Flame graph: /d1reportTime")
   * Builds projects into an `Events.json` file, converts it into `Trace.json` in a separate step.
 
 ## Getting started
